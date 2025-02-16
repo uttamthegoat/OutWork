@@ -27,27 +27,33 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppConstants.appName),
-        actions: [
-          IconButton(
-            icon:
-                Icon(themeProvider.isDarkMode ? Icons.sunny : Icons.dark_mode),
-            onPressed: () {
-              themeProvider.toggleTheme();
-            },
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        if (!themeProvider.isInitialized) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('OutWork'),
+            actions: [
+              IconButton(
+                icon: Icon(
+                  themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                ),
+                onPressed: () async {
+                  await themeProvider.toggleTheme();
+                },
+              ),
+            ],
           ),
-        ],
-      ),
-      drawer: const AppDrawer(),
-      body: _pages[_currentIndex],
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-      ),
+          drawer: const AppDrawer(),
+          body: _pages[_currentIndex],
+          bottomNavigationBar: BottomNavBar(
+            currentIndex: _currentIndex,
+            onTap: (index) => setState(() => _currentIndex = index),
+          ),
+        );
+      },
     );
   }
 }

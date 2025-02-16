@@ -4,7 +4,7 @@ import 'package:outwork/dialogs/add_split_dialog.dart';
 import 'package:provider/provider.dart';
 import 'package:outwork/providers/workout_provider.dart';
 import 'package:outwork/models/workout_split.dart';
-import 'package:outwork/database/database_helper.dart';
+import 'package:outwork/providers/theme_provider.dart';
 
 class WorkoutSplitScreen extends StatefulWidget {
   const WorkoutSplitScreen({super.key});
@@ -15,7 +15,7 @@ class WorkoutSplitScreen extends StatefulWidget {
 
 class _WorkoutSplitScreenState extends State<WorkoutSplitScreen> {
   final PageController _pageController = PageController();
-  int _currentPage = DateTime.now().weekday - 1;
+  int _currentPage = 1;
   final List<String> weekDays = AppConstants.weekDays;
 
   @override
@@ -40,44 +40,49 @@ class _WorkoutSplitScreenState extends State<WorkoutSplitScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(weekDays[_currentPage]),
-      ),
-      body: Column(
-        children: [
-          _buildWeekDayIndicator(),
-          Expanded(
-            child: PageView.builder(
-              controller: _pageController,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentPage = index;
-                });
-                _fetchWorkoutsForCurrentDay();
-              },
-              itemCount: 7,
-              itemBuilder: (context, index) {
-                return _buildDayWorkouts(weekDays[_currentPage]);
-              },
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(weekDays[_currentPage]),
+          ),
+          body: Column(
+            children: [
+              _buildWeekDayIndicator(themeProvider),
+              Expanded(
+                child: PageView.builder(
+                  controller: _pageController,
+                  onPageChanged: (index) {
+                    setState(() {
+                      _currentPage = index;
+                    });
+                    _fetchWorkoutsForCurrentDay();
+                  },
+                  itemCount: 7,
+                  itemBuilder: (context, index) {
+                    return _buildDayWorkouts(weekDays[_currentPage]);
+                  },
+                ),
+              ),
+            ],
+          ),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () => showDialog(
+              context: context,
+              builder: (context) => AddWorkoutSplitDialog(
+                currentDay: weekDays[_currentPage],
+              ),
             ),
+            label: const Text('Add Workout'),
+            icon: const Icon(Icons.add),
           ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showDialog(
-          context: context,
-          builder: (context) => AddWorkoutSplitDialog(
-            currentDay: weekDays[_currentPage],
-          ),
-        ),
-        label: const Text('Add Workout'),
-        icon: const Icon(Icons.add),
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildWeekDayIndicator() {
+  Widget _buildWeekDayIndicator(ThemeProvider themeProvider) {
     return Container(
       height: 60,
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -98,12 +103,14 @@ class _WorkoutSplitScreenState extends State<WorkoutSplitScreen> {
               width: MediaQuery.of(context).size.width / 7,
               margin: const EdgeInsets.symmetric(horizontal: 2),
               decoration: BoxDecoration(
-                color: isSelected ? Theme.of(context).primaryColor : null,
+                color: isSelected
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.onPrimary,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: isSelected
-                      ? Theme.of(context).primaryColor
-                      : Colors.grey.shade300,
+                      ? Theme.of(context).colorScheme.onPrimary
+                      : Theme.of(context).colorScheme.primary,
                 ),
               ),
               child: Column(
@@ -112,7 +119,9 @@ class _WorkoutSplitScreenState extends State<WorkoutSplitScreen> {
                   Text(
                     weekDays[index].substring(0, 3),
                     style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.grey,
+                      color: isSelected
+                          ? Theme.of(context).colorScheme.onPrimary
+                      : Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -132,7 +141,8 @@ class _WorkoutSplitScreenState extends State<WorkoutSplitScreen> {
           onRefresh: () async {
             await provider.fetchWorkoutSplitsForDay(day);
             if (!mounted) return;
-            Provider.of<WorkoutProvider>(context, listen: false).notifyListeners();
+            Provider.of<WorkoutProvider>(context, listen: false)
+                .notifyListeners();
           },
           child: FutureBuilder<List<WorkoutSplit>>(
             future: provider.fetchWorkoutSplitsForDay(day),

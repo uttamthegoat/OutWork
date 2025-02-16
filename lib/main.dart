@@ -13,7 +13,15 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await requestPermissions();
   await SharedPreferences.getInstance();
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (context) => WorkoutProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 Future<void> requestPermissions() async {
@@ -48,23 +56,18 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => WorkoutProvider(),
-      child: ChangeNotifierProvider(
-        create: (_) => ThemeProvider(),
-        child: Consumer<ThemeProvider>(
-          builder: (context, themeProvider, child) {
-            return MaterialApp(
-              title: AppConstants.appName,
-              theme: AppThemes.lightTheme,
-              darkTheme: AppThemes.darkTheme,
-              themeMode: themeProvider.themeMode,
-              debugShowCheckedModeBanner: false,
-              home: const HomePage(),
-            );
-          },
-        ),
-      ),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          title: AppConstants.appName,
+          theme: AppThemes.lightTheme,
+          darkTheme: AppThemes.darkTheme,
+          themeMode:
+              themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+          debugShowCheckedModeBanner: false,
+          home: const HomePage(),
+        );
+      },
     );
   }
 }
