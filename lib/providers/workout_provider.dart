@@ -173,6 +173,14 @@ class WorkoutProvider with ChangeNotifier {
             map['workout_5'] as String? ?? '',
             map['workout_6'] as String? ?? '',
           ],
+          workoutReps: [
+            map['workout_1_reps'] as int? ?? 0,
+            map['workout_2_reps'] as int? ?? 0,
+            map['workout_3_reps'] as int? ?? 0,
+            map['workout_4_reps'] as int? ?? 0,
+            map['workout_5_reps'] as int? ?? 0,
+            map['workout_6_reps'] as int? ?? 0,
+          ],
           status: map['status'] as String,
         );
       }).toList();

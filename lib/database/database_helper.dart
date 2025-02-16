@@ -190,12 +190,19 @@ class DatabaseHelper {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.rawQuery('''
       SELECT wl.id, wl.date, wl.status,
-        w1.name AS workout_1,
-        w2.name AS workout_2,
-        w3.name AS workout_3,
-        w4.name AS workout_4,
-        w5.name AS workout_5,
-        w6.name AS workout_6
+      w1.name as workout_1, 
+      wl.workout_1_reps,
+      w2.name as workout_2, 
+      wl.workout_2_reps,
+      w3.name as workout_3, 
+      wl.workout_3_reps,
+      w4.name as workout_4, 
+      wl.workout_4_reps,
+      w5.name as workout_5, 
+      wl.workout_5_reps,
+      w6.name as workout_6, 
+      wl.workout_6_reps,
+      wl.status
       FROM workout_logs wl
       LEFT JOIN workouts w1 ON wl.workout_1 = w1.id
       LEFT JOIN workouts w2 ON wl.workout_2 = w2.id

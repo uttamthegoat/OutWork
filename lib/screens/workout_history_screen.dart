@@ -36,6 +36,7 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
       body: Consumer<WorkoutProvider>(
         builder: (context, provider, child) {
           final workoutLogsByDate = provider.workoutLogsByDate;
+          print(workoutLogsByDate);
           return Column(
             children: [
               TableCalendar(
@@ -162,33 +163,61 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                                                 .where((name) =>
                                                     name != null &&
                                                     name.isNotEmpty)
-                                                .map((name) => Padding(
+                                                .map((name) {
+                                              final index = log.workoutNames
+                                                  .indexOf(name);
+                                              final reps =
+                                                  log.workoutReps[index];
+                                              return Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  vertical: 4,
+                                                  horizontal: 8,
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    Text(
+                                                      '${index + 1}.',
+                                                      style: const TextStyle(
+                                                        fontSize: 15,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    Expanded(
+                                                      child: Text(
+                                                        name!,
+                                                        style: const TextStyle(
+                                                          fontSize: 15,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Container(
                                                       padding: const EdgeInsets
                                                           .symmetric(
-                                                        vertical: 4,
                                                         horizontal: 8,
+                                                        vertical: 2,
                                                       ),
-                                                      child: Row(
-                                                        children: [
-                                                          Text(
-                                                            '${log.workoutNames.indexOf(name) + 1}.',
-                                                            style:
-                                                                const TextStyle(
-                                                              fontSize: 15,
-                                                            ),
-                                                          ),
-                                                          const SizedBox(
-                                                              width: 12),
-                                                          Text(
-                                                            name!,
-                                                            style:
-                                                                const TextStyle(
-                                                              fontSize: 15,
-                                                            ),
-                                                          ),
-                                                        ],
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.blue
+                                                            .withOpacity(0.1),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(12),
                                                       ),
-                                                    ))
+                                                      child: Text(
+                                                        '$reps reps',
+                                                        style: const TextStyle(
+                                                          color: Colors.blue,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 14,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            })
                                           ],
                                         ),
                                       ),

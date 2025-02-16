@@ -111,11 +111,24 @@ class _TodayPageState extends State<TodayPage> {
 
     try {
       Map<String, dynamic> workoutLog = {};
+      
+      // Get the workout splits to access the reps
+      final workoutSplits = Provider.of<WorkoutProvider>(context, listen: false).workoutSplits;
+      
+      // Create a map of workout_id to reps from splits
+      final workoutRepsMap = {
+        for (var split in workoutSplits) split.workout_id: split.reps
+      };
+
+      // Add selected workouts and their reps to the log
       for (int id in selectedWorkoutIds) {
-        print(id);
-        workoutLog['workout_${workoutLog.length + 1}'] = id;
+        final index = workoutLog.length ~/ 2 + 1;
+        workoutLog['workout_$index'] = id;
+        workoutLog['workout_${index}_reps'] = workoutRepsMap[id] ?? 0;
       }
+      
       workoutLog['status'] = 'Completed';
+      
       // Update the workout status to completed
       await Provider.of<WorkoutProvider>(context, listen: false)
           .updateWorkoutStatus(workoutLog);
