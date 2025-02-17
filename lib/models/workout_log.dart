@@ -3,6 +3,7 @@ class WorkoutLog {
   final DateTime date;
   final List<String?> workoutNames;
   final List<int?> workoutReps;
+  final List<double?> workoutWeights;
   final String status; // 'not_started', 'in_progress', 'completed'
 
   WorkoutLog({
@@ -10,6 +11,7 @@ class WorkoutLog {
     required this.date,
     required this.workoutNames,
     required this.workoutReps,
+    required this.workoutWeights,
     required this.status,
   });
 
@@ -19,6 +21,7 @@ class WorkoutLog {
       'date': date.toIso8601String().split('T').first,
       'workoutNames': workoutNames,
       'workoutReps': workoutReps,
+      'workoutWeights': workoutWeights,
       'status': status,
     };
   }
@@ -29,6 +32,7 @@ class WorkoutLog {
       date: DateTime.parse(map['date'] as String),
       workoutNames: (map['workoutNames'] as List<dynamic>).cast<String?>(),
       workoutReps: (map['workoutReps'] as List<dynamic>).cast<int?>(),
+      workoutWeights: (map['workoutWeights'] as List<dynamic>).cast<double?>(),
       status: map['status'] as String,
     );
   }

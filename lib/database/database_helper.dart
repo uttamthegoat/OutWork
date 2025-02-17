@@ -168,16 +168,16 @@ class DatabaseHelper {
     );
   }
 
-  Future<List<WorkoutSplit>> getWorkoutSplitsForDay(String day) async {
+  Future<List<Map<String, dynamic>>> getWorkoutSplitsForDay(String day) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.rawQuery('''
-      SELECT ws.id, ws.day, ws.reps, ws.workout as workout_id, w.name AS workout_name, w.category
+      SELECT ws.id, ws.day, ws.reps, ws.weight, ws.workout as workout_id, w.name AS workout_name, w.category
       FROM workout_split ws
       JOIN workouts w ON ws.workout = w.id
       WHERE ws.day = ?
     ''', [day]);
 
-    return maps.map((map) => WorkoutSplit.fromMap(map)).toList();
+    return maps;
   }
 
   Future<List<WorkoutLog>> getWorkoutLogs() async {
@@ -192,16 +192,22 @@ class DatabaseHelper {
       SELECT wl.id, wl.date, wl.status,
       w1.name as workout_1, 
       wl.workout_1_reps,
+      wl.workout_1_weights,
       w2.name as workout_2, 
       wl.workout_2_reps,
+      wl.workout_2_weights,
       w3.name as workout_3, 
       wl.workout_3_reps,
+      wl.workout_3_weights,
       w4.name as workout_4, 
       wl.workout_4_reps,
+      wl.workout_4_weights,
       w5.name as workout_5, 
       wl.workout_5_reps,
+      wl.workout_5_weights,
       w6.name as workout_6, 
       wl.workout_6_reps,
+      wl.workout_6_weights,
       wl.status
       FROM workout_logs wl
       LEFT JOIN workouts w1 ON wl.workout_1 = w1.id

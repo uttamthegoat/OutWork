@@ -117,9 +117,17 @@ class WorkoutProvider with ChangeNotifier {
   }
 
   Future<List<WorkoutSplit>> fetchWorkoutSplitsForDay(String day) async {
-    final splitsData =
-        await DatabaseHelper.instance.getWorkoutSplitsForDay(day);
-    _workoutSplits = splitsData;
+    final maps = await DatabaseHelper.instance.getWorkoutSplitsForDay(day);
+    _workoutSplits = maps.map((map) {
+      return WorkoutSplit(
+          id: map['id'] as int?,
+          day: map['day'] as String? ?? '',
+          workout_name: map['workout_name'] as String? ?? '',
+          workout_id: map['workout_id'],
+          category: map['category'] as String? ?? '',
+          reps: map['reps'] as int? ?? 0,
+          weight: map['weight'] as double? ?? 0 );
+    }).toList();
     return _workoutSplits;
   }
 
@@ -180,6 +188,14 @@ class WorkoutProvider with ChangeNotifier {
             map['workout_4_reps'] as int? ?? 0,
             map['workout_5_reps'] as int? ?? 0,
             map['workout_6_reps'] as int? ?? 0,
+          ],
+          workoutWeights: [
+            map['workout_1_weights'] as double? ?? 0,
+            map['workout_2_weights'] as double? ?? 0,
+            map['workout_3_weights'] as double? ?? 0,
+            map['workout_4_weights'] as double? ?? 0,
+            map['workout_5_weights'] as double? ?? 0,
+            map['workout_6_weights'] as double? ?? 0,
           ],
           status: map['status'] as String,
         );
@@ -305,7 +321,6 @@ class WorkoutProvider with ChangeNotifier {
       if (logs.isEmpty) {
         return 0;
       }
-      
 
       // Calculate streak
       DateTime? lastDate;

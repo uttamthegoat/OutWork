@@ -15,7 +15,7 @@ class WorkoutSplitScreen extends StatefulWidget {
 
 class _WorkoutSplitScreenState extends State<WorkoutSplitScreen> {
   final PageController _pageController = PageController();
-  int _currentPage = 1;
+  int _currentPage = DateTime.now().weekday - 1;
   final List<String> weekDays = AppConstants.weekDays;
 
   @override

@@ -111,10 +111,11 @@ class _TodayPageState extends State<TodayPage> {
 
     try {
       Map<String, dynamic> workoutLog = {};
-      
+
       // Get the workout splits to access the reps
-      final workoutSplits = Provider.of<WorkoutProvider>(context, listen: false).workoutSplits;
-      
+      final workoutSplits =
+          Provider.of<WorkoutProvider>(context, listen: false).workoutSplits;
+
       // Create a map of workout_id to reps from splits
       final workoutRepsMap = {
         for (var split in workoutSplits) split.workout_id: split.reps
@@ -126,9 +127,9 @@ class _TodayPageState extends State<TodayPage> {
         workoutLog['workout_$index'] = id;
         workoutLog['workout_${index}_reps'] = workoutRepsMap[id] ?? 0;
       }
-      
+
       workoutLog['status'] = 'Completed';
-      
+
       // Update the workout status to completed
       await Provider.of<WorkoutProvider>(context, listen: false)
           .updateWorkoutStatus(workoutLog);
@@ -161,7 +162,6 @@ class _TodayPageState extends State<TodayPage> {
       body: Consumer<WorkoutProvider>(
         builder: (context, provider, child) {
           final todayWorkouts = provider.workoutSplits;
-
           if (todayWorkouts.isEmpty) {
             return const Center(child: Text('No workouts for today'));
           }
@@ -176,7 +176,7 @@ class _TodayPageState extends State<TodayPage> {
                   leading: const Icon(Icons.fitness_center),
                   title: Text(workout.workout_name),
                   subtitle: Text(
-                    '${workout.reps} reps | Category: ${workout.category}',
+                    '${workout.reps} reps | Weight: ${workout.weight} kgs',
                   ),
                   trailing: Checkbox(
                     value: selectedWorkoutIds.contains(workout.workout_id),
@@ -199,7 +199,6 @@ class _TodayPageState extends State<TodayPage> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           if (_workoutFinished) {
-            
           } else if (_workoutInProgress) {
             _endWorkout(context);
           } else {
@@ -209,8 +208,16 @@ class _TodayPageState extends State<TodayPage> {
                     .workoutSplits);
           }
         },
-        label: Text(_workoutFinished ? 'Finished' : _workoutInProgress ? 'End' : 'Start'),
-        icon: Icon(_workoutFinished ? Icons.stop_circle : _workoutInProgress ? Icons.stop : Icons.play_arrow),
+        label: Text(_workoutFinished
+            ? 'Finished'
+            : _workoutInProgress
+                ? 'End'
+                : 'Start'),
+        icon: Icon(_workoutFinished
+            ? Icons.stop_circle
+            : _workoutInProgress
+                ? Icons.stop
+                : Icons.play_arrow),
       ),
     );
   }

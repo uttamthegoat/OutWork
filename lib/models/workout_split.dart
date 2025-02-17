@@ -5,6 +5,7 @@ class WorkoutSplit {
   final int workout_id;
   final String category;
   final int reps;
+  final double weight;
 
   WorkoutSplit({
     this.id,
@@ -13,6 +14,7 @@ class WorkoutSplit {
     required this.workout_id,
     required this.category,
     required this.reps,
+    required this.weight,
   });
 
   Map<String, dynamic> toMap() {
@@ -23,6 +25,7 @@ class WorkoutSplit {
       'workout_id': workout_id,
       'category': category,
       'reps': reps,
+      'weight': weight,
     };
   }
 
@@ -34,6 +37,7 @@ class WorkoutSplit {
       workout_id: map['workout_id'],
       category: map['category'] as String,
       reps: map['reps'] as int,
+      weight: map['weight'] as double ?? 0.0,
     );
   }
 }
