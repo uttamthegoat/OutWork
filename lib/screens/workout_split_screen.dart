@@ -42,7 +42,6 @@ class _WorkoutSplitScreenState extends State<WorkoutSplitScreen> {
   Widget build(BuildContext context) {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
-
         return Scaffold(
           appBar: AppBar(
             title: Text(weekDays[_currentPage]),
@@ -121,7 +120,7 @@ class _WorkoutSplitScreenState extends State<WorkoutSplitScreen> {
                     style: TextStyle(
                       color: isSelected
                           ? Theme.of(context).colorScheme.onPrimary
-                      : Theme.of(context).colorScheme.primary,
+                          : Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -161,19 +160,72 @@ class _WorkoutSplitScreenState extends State<WorkoutSplitScreen> {
                 padding: const EdgeInsets.all(16),
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: workoutSplits.isEmpty
-                    ? [
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.7,
-                          child: const Center(
-                            child: Text('No workouts for this day'),
+                    ? <Widget>[
+                        Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.2),
+                              const Text(
+                                'No workouts for this day',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ],
                           ),
                         ),
                       ]
-                    : workoutSplits.map((split) {
-                        return ListTile(
-                          title: Text(split.workout_name),
-                          subtitle: Text(
-                              'Reps: ${split.reps} | Category: ${split.category}'),
+                    : workoutSplits.map<Widget>((split) {
+                        return Dismissible(
+                          key: Key(split.id.toString()),
+                          direction: DismissDirection.endToStart,
+                          background: Container(
+                            color: Colors.red,
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.only(right: 16),
+                            child: const Icon(
+                              Icons.delete,
+                              color: Colors.white,
+                            ),
+                          ),
+                          confirmDismiss: (direction) async {
+                            return await showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text('Delete Workout'),
+                                  content: const Text(
+                                      'Are you sure you want to delete this workout?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(true),
+                                      child: const Text('Delete'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                          onDismissed: (direction) async {
+                            await provider.deleteWorkoutSplit(split.id!);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text('Workout deleted')
+                              ),
+                            );
+                          },
+                          child: ListTile(
+                            title: Text(split.workout_name),
+                            subtitle: Text(
+                                '${split.sets} x ${split.reps} | Category: ${split.category}'),
+                          ),
                         );
                       }).toList(),
               );

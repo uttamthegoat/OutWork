@@ -120,12 +120,16 @@ class _TodayPageState extends State<TodayPage> {
       final workoutRepsMap = {
         for (var split in workoutSplits) split.workout_id: split.reps
       };
+      final workoutSetsMap = {
+        for (var split in workoutSplits) split.workout_id: split.sets
+      };
 
       // Add selected workouts and their reps to the log
       for (int id in selectedWorkoutIds) {
         final index = workoutLog.length ~/ 2 + 1;
         workoutLog['workout_$index'] = id;
         workoutLog['workout_${index}_reps'] = workoutRepsMap[id] ?? 0;
+        workoutLog['workout_${index}_sets'] = workoutSetsMap[id] ?? 0;
       }
 
       workoutLog['status'] = 'Completed';
@@ -176,7 +180,7 @@ class _TodayPageState extends State<TodayPage> {
                   leading: const Icon(Icons.fitness_center),
                   title: Text(workout.workout_name),
                   subtitle: Text(
-                    '${workout.reps} reps | Weight: ${workout.weight} kgs',
+                    '${workout.sets} sets x ${workout.reps} reps | Weight: ${workout.weight} kgs',
                   ),
                   trailing: Checkbox(
                     value: selectedWorkoutIds.contains(workout.workout_id),

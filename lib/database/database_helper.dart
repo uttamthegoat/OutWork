@@ -4,7 +4,6 @@ import 'package:outwork/models/workout_log.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:outwork/models/personal_record.dart';
-import 'package:outwork/models/workout_split.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -171,7 +170,7 @@ class DatabaseHelper {
   Future<List<Map<String, dynamic>>> getWorkoutSplitsForDay(String day) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.rawQuery('''
-      SELECT ws.id, ws.day, ws.reps, ws.weight, ws.workout as workout_id, w.name AS workout_name, w.category
+      SELECT ws.id, ws.day, ws.reps, ws.sets, ws.weight, ws.workout as workout_id, w.name AS workout_name, w.category
       FROM workout_split ws
       JOIN workouts w ON ws.workout = w.id
       WHERE ws.day = ?
@@ -192,21 +191,27 @@ class DatabaseHelper {
       SELECT wl.id, wl.date, wl.status,
       w1.name as workout_1, 
       wl.workout_1_reps,
+      wl.workout_1_sets,
       wl.workout_1_weights,
       w2.name as workout_2, 
       wl.workout_2_reps,
+      wl.workout_2_sets,
       wl.workout_2_weights,
       w3.name as workout_3, 
       wl.workout_3_reps,
+      wl.workout_3_sets,
       wl.workout_3_weights,
       w4.name as workout_4, 
       wl.workout_4_reps,
+      wl.workout_4_sets,
       wl.workout_4_weights,
       w5.name as workout_5, 
       wl.workout_5_reps,
+      wl.workout_5_sets,
       wl.workout_5_weights,
       w6.name as workout_6, 
       wl.workout_6_reps,
+      wl.workout_6_sets,
       wl.workout_6_weights,
       wl.status
       FROM workout_logs wl

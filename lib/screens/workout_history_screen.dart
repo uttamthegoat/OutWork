@@ -36,7 +36,12 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
       body: Consumer<WorkoutProvider>(
         builder: (context, provider, child) {
           final workoutLogsByDate = provider.workoutLogsByDate;
-          print(workoutLogsByDate);
+          workoutLogsByDate.forEach((date, logs) {
+            print('Date: $date');
+            for (var log in logs) {
+              print('Workout Log: ${log.workoutNames}, Reps: ${log.workoutReps}, Sets: ${log.workoutSets}, Status: ${log.status}');
+            }
+          });
           return Column(
             children: [
               TableCalendar(
@@ -168,6 +173,7 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                                                   .indexOf(name);
                                               final reps =
                                                   log.workoutReps[index];
+                                              final sets = log.workoutSets[index];
                                               return Padding(
                                                 padding:
                                                     const EdgeInsets.symmetric(
@@ -205,7 +211,7 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                                                                 .circular(12),
                                                       ),
                                                       child: Text(
-                                                        '$reps reps',
+                                                        '$sets x $reps reps',
                                                         style: const TextStyle(
                                                           color: Colors.blue,
                                                           fontWeight:

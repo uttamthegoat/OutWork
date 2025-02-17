@@ -15,12 +15,14 @@ class AddWorkoutSplitDialog extends StatefulWidget {
 class _AddWorkoutSplitDialogState extends State<AddWorkoutSplitDialog> {
   final _formKey = GlobalKey<FormState>();
   final _repsController = TextEditingController();
+  final _setsController = TextEditingController();
   final _weightsController = TextEditingController();
   int? _selectedWorkoutId;
 
   @override
   void dispose() {
     _repsController.dispose();
+    _setsController.dispose();
     _weightsController.dispose();
     super.dispose();
   }
@@ -31,6 +33,7 @@ class _AddWorkoutSplitDialogState extends State<AddWorkoutSplitDialog> {
         'day': widget.currentDay,
         'workout': _selectedWorkoutId!,
         'reps': int.parse(_repsController.text),
+        'sets': int.parse(_setsController.text),
         'weight': double.tryParse(_weightsController.text),
       };
 
@@ -134,9 +137,29 @@ class _AddWorkoutSplitDialogState extends State<AddWorkoutSplitDialog> {
               },
             ),
             const SizedBox(height: 16),
+            TextFormField(
+              controller: _setsController,
+              decoration: const InputDecoration(
+                labelText: 'Sets',
+                hintText: 'Enter sets for workout',
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.number,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter the number of sets';
+                }
+                if (int.tryParse(value) == null) {
+                  return 'Please enter a valid number';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
             TextField(
               controller: _weightsController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               decoration: const InputDecoration(
                 labelText: 'Weights (kg)',
                 hintText: 'Enter weight for workout',

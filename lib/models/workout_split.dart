@@ -5,6 +5,7 @@ class WorkoutSplit {
   final int workout_id;
   final String category;
   final int reps;
+  final int sets;
   final double weight;
 
   WorkoutSplit({
@@ -14,6 +15,7 @@ class WorkoutSplit {
     required this.workout_id,
     required this.category,
     required this.reps,
+    required this.sets,
     required this.weight,
   });
 
@@ -25,6 +27,7 @@ class WorkoutSplit {
       'workout_id': workout_id,
       'category': category,
       'reps': reps,
+      'sets': sets,
       'weight': weight,
     };
   }
@@ -37,6 +40,7 @@ class WorkoutSplit {
       workout_id: map['workout_id'],
       category: map['category'] as String,
       reps: map['reps'] as int,
+      sets: map['sets'] as int,
       weight: map['weight'] as double ?? 0.0,
     );
   }

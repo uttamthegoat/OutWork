@@ -126,9 +126,27 @@ class WorkoutProvider with ChangeNotifier {
           workout_id: map['workout_id'],
           category: map['category'] as String? ?? '',
           reps: map['reps'] as int? ?? 0,
-          weight: map['weight'] as double? ?? 0 );
+          sets: map['sets'] as int? ?? 0,
+          weight: map['weight'] as double? ?? 0);
     }).toList();
     return _workoutSplits;
+  }
+
+  Future<void> deleteWorkoutSplit(int id) async {
+    try {
+      final db = await DatabaseHelper.instance.database;
+      await db.delete(
+        'workout_split',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      
+      _workoutSplits.removeWhere((split) => split.id == id);
+      notifyListeners();
+    } catch (e) {
+      print('Error deleting workout split: $e');
+      rethrow;
+    }
   }
 
   Future<bool> isWorkoutFinished() async {
@@ -188,6 +206,14 @@ class WorkoutProvider with ChangeNotifier {
             map['workout_4_reps'] as int? ?? 0,
             map['workout_5_reps'] as int? ?? 0,
             map['workout_6_reps'] as int? ?? 0,
+          ],
+          workoutSets: [
+            map['workout_1_sets'] as int? ?? 0,
+            map['workout_2_sets'] as int? ?? 0,
+            map['workout_3_sets'] as int? ?? 0,
+            map['workout_4_sets'] as int? ?? 0,
+            map['workout_5_sets'] as int? ?? 0,
+            map['workout_6_sets'] as int? ?? 0,
           ],
           workoutWeights: [
             map['workout_1_weights'] as double? ?? 0,
