@@ -224,7 +224,7 @@ class _WorkoutSplitScreenState extends State<WorkoutSplitScreen> {
                           child: ListTile(
                             title: Text(split.workout_name),
                             subtitle: Text(
-                                '${split.sets} x ${split.reps} | Category: ${split.category}'),
+                                'Category: ${split.category}'),
                           ),
                         );
                       }).toList(),

@@ -16,6 +16,7 @@ class _DatabaseViewerScreenState extends State<DatabaseViewerScreen> {
     'workouts',
     'workout_muscle_groups',
     'workout_logs',
+    'workout_details',
     'personal_records',
     'workout_split',
     'goals',

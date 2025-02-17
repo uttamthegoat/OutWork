@@ -9,6 +9,7 @@ class DatabaseConstants {
     'personal_records': 'DROP TABLE IF EXISTS personal_records',
     'workout_split': 'DROP TABLE IF EXISTS workout_split',
     'workout_logs': 'DROP TABLE IF EXISTS workout_logs',
+    'workout_details': 'DROP TABLE IF EXISTS workout_details',
     'workouts': 'DROP TABLE IF EXISTS workouts',
   };
 
@@ -32,37 +33,18 @@ class DatabaseConstants {
       CREATE TABLE workout_logs(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         date TEXT NOT NULL,
-        workout_1 INTEGER,
-        workout_1_reps INTEGER,
-        workout_1_sets INTEGER,
-        workout_1_weights REAL,
-        workout_2 INTEGER,
-        workout_2_reps INTEGER,
-        workout_2_sets INTEGER,
-        workout_2_weights REAL,
-        workout_3 INTEGER,
-        workout_3_reps INTEGER,
-        workout_3_sets INTEGER,
-        workout_3_weights REAL,
-        workout_4 INTEGER,
-        workout_4_reps INTEGER,
-        workout_4_sets INTEGER,
-        workout_4_weights REAL,
-        workout_5 INTEGER,
-        workout_5_reps INTEGER,
-        workout_5_sets INTEGER,
-        workout_5_weights REAL,
-        workout_6 INTEGER,
-        workout_6_reps INTEGER,
-        workout_6_sets INTEGER,
-        workout_6_weights REAL,
-        status TEXT NOT NULL,
-        FOREIGN KEY (workout_1) REFERENCES workouts (id) ON DELETE SET NULL,
-        FOREIGN KEY (workout_2) REFERENCES workouts (id) ON DELETE SET NULL,
-        FOREIGN KEY (workout_3) REFERENCES workouts (id) ON DELETE SET NULL,
-        FOREIGN KEY (workout_4) REFERENCES workouts (id) ON DELETE SET NULL,
-        FOREIGN KEY (workout_5) REFERENCES workouts (id) ON DELETE SET NULL,
-        FOREIGN KEY (workout_6) REFERENCES workouts (id) ON DELETE SET NULL
+        status TEXT NOT NULL
+      )
+    ''',
+    'workout_details': '''
+      CREATE TABLE workout_details(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        log_id INTEGER NOT NULL,
+        workout_id INTEGER NOT NULL,
+        weight REAL,
+        sets_data TEXT NOT NULL,  /* Stores JSON array of sets: [{"reps": 10}, {"reps": 12}, {"reps": 8}] */
+        FOREIGN KEY (log_id) REFERENCES workout_logs (id) ON DELETE CASCADE,
+        FOREIGN KEY (workout_id) REFERENCES workouts (id) ON DELETE CASCADE
       )
     ''',
     'personal_records': '''
@@ -80,9 +62,6 @@ class DatabaseConstants {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         day TEXT NOT NULL,
         workout INTEGER NOT NULL,
-        reps INTEGER NOT NULL,
-        sets INTEGER NOT NULL,
-        weight REAL,
         FOREIGN KEY (workout) REFERENCES workouts (id) ON DELETE CASCADE
       )
     ''',

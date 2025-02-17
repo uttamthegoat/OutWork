@@ -170,7 +170,7 @@ class DatabaseHelper {
   Future<List<Map<String, dynamic>>> getWorkoutSplitsForDay(String day) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.rawQuery('''
-      SELECT ws.id, ws.day, ws.reps, ws.sets, ws.weight, ws.workout as workout_id, w.name AS workout_name, w.category
+      SELECT ws.id, ws.day, ws.workout as workout_id, w.name AS workout_name, w.category
       FROM workout_split ws
       JOIN workouts w ON ws.workout = w.id
       WHERE ws.day = ?
@@ -189,7 +189,7 @@ class DatabaseHelper {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.rawQuery('''
       SELECT wl.id, wl.date, wl.status,
-      w1.name as workout_1, 
+      w1.name as workout_1,
       wl.workout_1_reps,
       wl.workout_1_sets,
       wl.workout_1_weights,

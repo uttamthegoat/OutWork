@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:outwork/providers/workout_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'dart:convert';
 
 class WorkoutHistoryScreen extends StatefulWidget {
   const WorkoutHistoryScreen({super.key});
@@ -27,6 +28,146 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
         .fetchWorkoutLogs();
   }
 
+  Widget _buildWorkoutDetails(
+      String dateString, List<Map<String, dynamic>> logs) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      color: Colors.black,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Workouts on ${DateFormat.yMMMMd().format(DateTime.parse(dateString))}',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Flexible(
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: logs.length,
+              itemBuilder: (context, index) {
+                final log = logs[index];
+                final workoutName = log['workout_name'] as String;
+                final weight = log['weight'] as double?;
+                final setsData = jsonDecode(log['sets_data'] as String) as List;
+
+                return Card(
+                  elevation: 3,
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.fitness_center,
+                                color: Colors.blue,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                workoutName,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (weight != null) ...[
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'Weight: ${weight}kg',
+                              style: const TextStyle(
+                                color: Colors.orange,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 8),
+                        ...List.generate(setsData.length, (setIndex) {
+                          final setData =
+                              setsData[setIndex] as Map<String, dynamic>;
+                          final reps = setData['reps'] as int?;
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 4,
+                              horizontal: 8,
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    reps != null
+                                        ? 'Set ${setIndex + 1}: $reps reps'
+                                        : 'Set ${setIndex + 1}: No reps recorded',
+                                    style: const TextStyle(
+                                      color: Colors.blue,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,12 +177,6 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
       body: Consumer<WorkoutProvider>(
         builder: (context, provider, child) {
           final workoutLogsByDate = provider.workoutLogsByDate;
-          workoutLogsByDate.forEach((date, logs) {
-            print('Date: $date');
-            for (var log in logs) {
-              print('Workout Log: ${log.workoutNames}, Reps: ${log.workoutReps}, Sets: ${log.workoutSets}, Status: ${log.status}');
-            }
-          });
           return Column(
             children: [
               TableCalendar(
@@ -64,184 +199,26 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                   // Check if there are logs for this date
                   if (workoutLogsByDate.containsKey(dateString)) {
                     showModalBottomSheet(
-                      context: context,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.vertical(top: Radius.circular(20)),
-                      ),
-                      builder: (context) {
-                        final logs = workoutLogsByDate[dateString]!;
-                        return Container(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Workouts on ${DateFormat.yMMMMd().format(selectedDay)}',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              Flexible(
-                                child: ListView.builder(
-                                  shrinkWrap: true,
-                                  itemCount: logs.length,
-                                  itemBuilder: (context, index) {
-                                    final log = logs[index];
-                                    return Card(
-                                      elevation: 3,
-                                      margin: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Container(
-                                        padding: const EdgeInsets.all(12),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Container(
-                                                  padding:
-                                                      const EdgeInsets.all(8),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.blue
-                                                        .withOpacity(0.1),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8),
-                                                  ),
-                                                  child: const Icon(
-                                                    Icons.fitness_center,
-                                                    color: Colors.blue,
-                                                    size: 24,
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 12),
-                                                Container(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                    horizontal: 12,
-                                                    vertical: 6,
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                    color: log.status ==
-                                                            'Completed'
-                                                        ? Colors.green
-                                                            .withOpacity(0.1)
-                                                        : Colors.orange
-                                                            .withOpacity(0.1),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            16),
-                                                  ),
-                                                  child: Text(
-                                                    log.status,
-                                                    style: TextStyle(
-                                                      color: log.status ==
-                                                              'Completed'
-                                                          ? Colors.green
-                                                          : Colors.orange,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 16),
-                                            const Text(
-                                              'Workouts',
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 8),
-                                            ...log.workoutNames
-                                                .where((name) =>
-                                                    name != null &&
-                                                    name.isNotEmpty)
-                                                .map((name) {
-                                              final index = log.workoutNames
-                                                  .indexOf(name);
-                                              final reps =
-                                                  log.workoutReps[index];
-                                              final sets = log.workoutSets[index];
-                                              return Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                  vertical: 4,
-                                                  horizontal: 8,
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    Text(
-                                                      '${index + 1}.',
-                                                      style: const TextStyle(
-                                                        fontSize: 15,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(width: 12),
-                                                    Expanded(
-                                                      child: Text(
-                                                        name!,
-                                                        style: const TextStyle(
-                                                          fontSize: 15,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Container(
-                                                      padding: const EdgeInsets
-                                                          .symmetric(
-                                                        horizontal: 8,
-                                                        vertical: 2,
-                                                      ),
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.blue
-                                                            .withOpacity(0.1),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(12),
-                                                      ),
-                                                      child: Text(
-                                                        '$sets x $reps reps',
-                                                        style: const TextStyle(
-                                                          color: Colors.blue,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 14,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-                                            })
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              ElevatedButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('Close'),
-                              ),
-                              const SizedBox(height: 8),
-                            ],
-                          ),
-                        );
-                      },
-                    );
+                        context: context,
+                        isScrollControlled: true,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.vertical(top: Radius.circular(20)),
+                              side: BorderSide(
+                    color: Colors.white,
+                    width: 1.0,
+                    style: BorderStyle.solid,
+                    strokeAlign: BorderSide.strokeAlignOutside,
+                  ),
+                        ),
+                        builder: (context) {
+                          return SizedBox(
+                    height: MediaQuery.of(context).size.height *
+                        0.8, // 90% of screen height
+                    child: _buildWorkoutDetails(
+                              dateString, workoutLogsByDate[dateString]!),
+                  );
+                        });
                   }
                 },
                 startingDayOfWeek: StartingDayOfWeek.monday,

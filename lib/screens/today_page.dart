@@ -3,6 +3,8 @@ import 'package:outwork/constants/app_constants.dart';
 import 'package:provider/provider.dart';
 import 'package:outwork/providers/workout_provider.dart';
 import 'package:outwork/models/workout_split.dart';
+import 'package:outwork/models/workout_log.dart';
+import 'dart:convert';
 
 class TodayPage extends StatefulWidget {
   const TodayPage({super.key});
@@ -17,6 +19,10 @@ class _TodayPageState extends State<TodayPage> {
   bool _workoutInProgress = false;
   bool _workoutFinished = false;
   Set<int> selectedWorkoutIds = {}; // Set to store selected workout IDs
+  List<Map<String, dynamic>> workoutList = [];
+  Map<String, TextEditingController> controllers = {};
+  bool _isCompletedWorkoutsExpanded = false;
+  List<dynamic> todayLogs = [];
 
   @override
   void initState() {
@@ -24,8 +30,46 @@ class _TodayPageState extends State<TodayPage> {
     final today = DateTime.now();
     todayDay = _getDayName(today.weekday);
     _fetchWorkouts();
+    _fetchWorkoutLogs();
     _checkWorkoutStatus();
     _isWorkoutFinished();
+  }
+
+  Future<void> _fetchWorkoutLogs() async {
+    await Provider.of<WorkoutProvider>(context, listen: false)
+        .fetchWorkoutLogs();
+    final todayDate = DateTime.now().toIso8601String().split('T').first;
+    setState(() {
+      todayLogs = Provider.of<WorkoutProvider>(context, listen: false)
+              .workoutLogsByDate[todayDate] ??
+          [];
+    });
+  }
+
+  @override
+  void dispose() {
+    controllers.values.forEach((controller) => controller.dispose());
+    super.dispose();
+  }
+
+  void _addSet(int workoutId) {
+    setState(() {
+      int workoutIndex =
+          workoutList.indexWhere((set) => set['workout_id'] == workoutId);
+
+      if (workoutIndex == -1) {
+        // Workout doesn't exist, create new entry
+        workoutList.add({
+          'workout_id': workoutId,
+          'weight': '',
+          'sets': [''] // Initialize with one empty rep
+        });
+      } else {
+        // Workout exists, add new rep to sets
+        (workoutList[workoutIndex]['sets'] as List)
+            .add(''); // Add an empty string for the new set
+      }
+    });
   }
 
   String _getDayName(int weekday) {
@@ -54,89 +98,69 @@ class _TodayPageState extends State<TodayPage> {
     });
   }
 
-  Future<void> _startWorkout(
-      BuildContext context, List<WorkoutSplit> workouts) async {
-    if (_isLoading || _workoutInProgress) return;
-
+  Future<void> _saveWorkout(BuildContext context) async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      if (workouts.isEmpty) {
+      // Check if workoutList is empty
+      if (workoutList.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No workouts scheduled for today')),
+          const SnackBar(
+              content: Text('No workouts to save. Please add workouts first.')),
         );
-        return;
+        return; // Exit the function early
       }
 
-      // Create a new workout log entry dynamically
-      final Map<String, dynamic> workoutLog = {
-        'date': DateTime.now().toIso8601String().split('T').first,
-        'status': 'In Progress',
-      };
-
-      // Fill remaining workout slots with null
-      for (int i = workouts.length; i < 5; i++) {
-        workoutLog['workout_${i + 1}'] = null;
-      }
-
-      // Log the workout
-      await Provider.of<WorkoutProvider>(context, listen: false)
-          .logWorkout(workoutLog);
-
-      setState(() {
-        _workoutInProgress = true;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Workout session started')),
-      );
-    } catch (e) {
-      print(e);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${e.toString()}')),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _endWorkout(BuildContext context) async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      Map<String, dynamic> workoutLog = {};
-
-      // Get the workout splits to access the reps
-      final workoutSplits =
+      final todayWorkouts =
           Provider.of<WorkoutProvider>(context, listen: false).workoutSplits;
 
-      // Create a map of workout_id to reps from splits
-      final workoutRepsMap = {
-        for (var split in workoutSplits) split.workout_id: split.reps
-      };
-      final workoutSetsMap = {
-        for (var split in workoutSplits) split.workout_id: split.sets
+      // First, create the workout_logs entry
+      final Map<String, dynamic> workoutLogEntry = {
+        'date': DateTime.now().toIso8601String().split('T').first,
+        'status': 'completed'
       };
 
-      // Add selected workouts and their reps to the log
-      for (int id in selectedWorkoutIds) {
-        final index = workoutLog.length ~/ 2 + 1;
-        workoutLog['workout_$index'] = id;
-        workoutLog['workout_${index}_reps'] = workoutRepsMap[id] ?? 0;
-        workoutLog['workout_${index}_sets'] = workoutSetsMap[id] ?? 0;
+      // Insert the log entry and get the log_id
+      final int logId =
+          await Provider.of<WorkoutProvider>(context, listen: false)
+              .createWorkoutLog(workoutLogEntry);
+
+      // Create workout_details entries for each workout
+      for (var workout in workoutList) {
+        // Find the workout from todayWorkouts
+        final workoutSplit = todayWorkouts.firstWhere(
+          (w) => w.workout_id == workout['workout_id'],
+          orElse: () => throw Exception('Workout not found'),
+        );
+
+        // Convert weight to double
+        final weight = workout['weight'].toString().isEmpty
+            ? null
+            : double.parse(workout['weight'].toString());
+
+        // Convert sets to JSON array of reps
+        List<Map<String, dynamic>> setsData = [];
+        for (var rep in workout['sets']) {
+          setsData.add({
+            'reps': rep.toString().isEmpty ? null : int.parse(rep.toString())
+          });
+        }
+
+        // Create the workout_details entry
+        final Map<String, dynamic> workoutDetails = {
+          'log_id': logId,
+          'workout_id': workout['workout_id'],
+          'weight': weight,
+          'sets_data':
+              setsData, // This will be converted to JSON string in the provider
+        };
+
+        // Insert the workout details
+        await Provider.of<WorkoutProvider>(context, listen: false)
+            .addWorkoutDetails(workoutDetails);
       }
-
-      workoutLog['status'] = 'Completed';
-
-      // Update the workout status to completed
-      await Provider.of<WorkoutProvider>(context, listen: false)
-          .updateWorkoutStatus(workoutLog);
 
       setState(() {
         _workoutInProgress = false;
@@ -147,8 +171,9 @@ class _TodayPageState extends State<TodayPage> {
         const SnackBar(content: Text('Workout session completed')),
       );
     } catch (e) {
+      print('Error in _saveWorkout: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$e')),
+        SnackBar(content: Text('Error saving workout: $e')),
       );
     } finally {
       setState(() {
@@ -162,66 +187,310 @@ class _TodayPageState extends State<TodayPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Today\'s Workouts'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                showDragHandle: true,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                  side: BorderSide(
+                    color: Colors.white,
+                    width: 1.0,
+                    style: BorderStyle.solid,
+                    strokeAlign: BorderSide.strokeAlignOutside,
+                  ),
+                ),
+                builder: (context) {
+                  return SizedBox(
+                    height: MediaQuery.of(context).size.height *
+                        0.8, // 90% of screen height
+                    child: _buildCompletedWorkoutsModal(context, todayLogs),
+                  );
+                },
+              );
+            },
+            child: const Row(
+              children: [Icon(Icons.list), Text('Today\'s Workouts')],
+            ),
+          )
+        ],
       ),
       body: Consumer<WorkoutProvider>(
         builder: (context, provider, child) {
           final todayWorkouts = provider.workoutSplits;
-          if (todayWorkouts.isEmpty) {
-            return const Center(child: Text('No workouts for today'));
-          }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: todayWorkouts.length,
-            itemBuilder: (context, index) {
-              final workout = todayWorkouts[index];
-              return Card(
-                child: ListTile(
-                  leading: const Icon(Icons.fitness_center),
-                  title: Text(workout.workout_name),
-                  subtitle: Text(
-                    '${workout.sets} sets x ${workout.reps} reps | Weight: ${workout.weight} kgs',
-                  ),
-                  trailing: Checkbox(
-                    value: selectedWorkoutIds.contains(workout.workout_id),
-                    onChanged: (bool? value) {
-                      setState(() {
-                        if (value == true) {
-                          selectedWorkoutIds.add(workout.workout_id);
-                        } else {
-                          selectedWorkoutIds.remove(workout.workout_id);
-                        }
-                      });
-                    },
-                  ),
+          return Column(
+            children: [
+              Expanded(
+                flex: 2,
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: todayWorkouts.length,
+                  itemBuilder: (context, index) {
+                    final workout = todayWorkouts[index];
+
+                    return ExpansionTile(
+                      leading: const Icon(Icons.fitness_center),
+                      title: Text(workout.workout_name),
+                      children: [
+                        Column(
+                          children: [
+                            ...(() {
+                              // Find the workout's data
+                              final workoutEntry = workoutList.firstWhere(
+                                (entry) =>
+                                    entry['workout_id'] == workout.workout_id,
+                                orElse: () => {
+                                  'workout_id': workout.workout_id,
+                                  'weight': '',
+                                  'sets': ['']
+                                },
+                              );
+
+                              List<Widget> widgets = [
+                                // Weight Row
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16.0, vertical: 8.0),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: TextField(
+                                          controller: controllers.putIfAbsent(
+                                            '${workout.workout_id}_weight',
+                                            () => TextEditingController(
+                                                text: workoutEntry['weight']
+                                                    .toString()),
+                                          ),
+                                          decoration: const InputDecoration(
+                                            labelText: 'Weight',
+                                            border: OutlineInputBorder(),
+                                          ),
+                                          keyboardType: TextInputType.number,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              // Find and update the specific workout entry in workoutList
+                                              int workoutIndex = workoutList
+                                                  .indexWhere((entry) =>
+                                                      entry['workout_id'] ==
+                                                      workout.workout_id);
+                                              if (workoutIndex == -1) {
+                                                // If entry doesn't exist, create it
+                                                workoutList.add({
+                                                  'workout_id':
+                                                      workout.workout_id,
+                                                  'weight': value,
+                                                  'sets': ['']
+                                                });
+                                              } else {
+                                                // Update existing entry
+                                                workoutList[workoutIndex]
+                                                    ['weight'] = value;
+                                              }
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ];
+
+                              // Add Reps Rows
+                              final sets = (workoutEntry['sets'] as List);
+                              for (int i = 0; i < sets.length; i++) {
+                                widgets.add(
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16.0, vertical: 8.0),
+                                    child: Row(
+                                      children: [
+                                        Text('Set ${i + 1}:',
+                                            style:
+                                                const TextStyle(fontSize: 16)),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: TextField(
+                                            controller: controllers.putIfAbsent(
+                                              '${workout.workout_id}_rep_$i',
+                                              () => TextEditingController(
+                                                  text: sets[i].toString()),
+                                            ),
+                                            decoration: const InputDecoration(
+                                              labelText: 'Reps',
+                                              border: OutlineInputBorder(),
+                                            ),
+                                            keyboardType: TextInputType.number,
+                                            onChanged: (value) {
+                                              setState(() {
+                                                sets[i] =
+                                                    value.isEmpty ? '' : value;
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }
+
+                              widgets.add(
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8.0),
+                                  child: ElevatedButton.icon(
+                                    onPressed: () =>
+                                        _addSet(workout.workout_id),
+                                    icon: const Icon(Icons.add),
+                                    label: const Text('Add Set'),
+                                  ),
+                                ),
+                              );
+
+                              return widgets;
+                            })(),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
                 ),
-              );
-            },
+              ),
+            ],
           );
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          if (_workoutFinished) {
-          } else if (_workoutInProgress) {
-            _endWorkout(context);
-          } else {
-            _startWorkout(
-                context,
-                Provider.of<WorkoutProvider>(context, listen: false)
-                    .workoutSplits);
-          }
+          _saveWorkout(context);
         },
-        label: Text(_workoutFinished
-            ? 'Finished'
-            : _workoutInProgress
-                ? 'End'
-                : 'Start'),
-        icon: Icon(_workoutFinished
-            ? Icons.stop_circle
-            : _workoutInProgress
-                ? Icons.stop
-                : Icons.play_arrow),
+        label: Text('Save'),
+        icon: Icon(Icons.save),
+      ),
+    );
+  }
+
+  Widget _buildCompletedWorkoutsModal(
+      BuildContext context, List<dynamic> todayLogs) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Today\'s Completed Workouts',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: ListView.builder(
+              itemCount: todayLogs.length,
+              itemBuilder: (context, index) {
+                final log = todayLogs[index];
+                final workoutName = log['workout_name'] as String;
+                final weight = log['weight'] as double?;
+                final setsData = jsonDecode(log['sets_data'] as String) as List;
+
+                return Card(
+                  elevation: 3,
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.fitness_center,
+                                color: Colors.blue,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                workoutName,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (weight != null) ...[
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'Weight: ${weight}kg',
+                              style: const TextStyle(
+                                color: Colors.orange,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: List.generate(setsData.length, (setIndex) {
+                            final setData =
+                                setsData[setIndex] as Map<String, dynamic>;
+                            final reps = setData['reps'] as int?;
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'Set ${setIndex + 1}: ${reps ?? 'No'} reps',
+                                style: const TextStyle(
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            );
+                          }),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

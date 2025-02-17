@@ -1,6 +1,7 @@
 // ignore_for_file: unused_local_variable
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:outwork/database/database_helper.dart';
@@ -25,6 +26,13 @@ class WorkoutProvider with ChangeNotifier {
   List<Goal> get goals => [..._goals];
   int get bestStreak => _bestStreak;
   int get currentStreak => _currentStreak;
+
+  // Add this property to store workout logs by date
+  Map<String, List<Map<String, dynamic>>> _workoutLogsByDate = {};
+
+  // Add getter for workoutLogsByDate
+  Map<String, List<Map<String, dynamic>>> get workoutLogsByDate =>
+      _workoutLogsByDate;
 
   Future<void> loadWorkouts() async {
     try {
@@ -88,6 +96,18 @@ class WorkoutProvider with ChangeNotifier {
     }
   }
 
+  Future<int> createWorkoutLog(Map<String, dynamic> workoutLog) async {
+    final db = await DatabaseHelper.instance.database;
+    return await db.insert('workout_logs', workoutLog);
+  }
+
+  Future<void> addWorkoutDetails(Map<String, dynamic> workoutDetails) async {
+    final db = await DatabaseHelper.instance.database;
+    // Convert sets_data to JSON string before inserting
+    workoutDetails['sets_data'] = jsonEncode(workoutDetails['sets_data']);
+    await db.insert('workout_details', workoutDetails);
+  }
+
   Future<void> updateWorkoutLog(WorkoutLog workoutLog) async {
     final db = await DatabaseHelper.instance.database;
     await db.update(
@@ -124,10 +144,7 @@ class WorkoutProvider with ChangeNotifier {
           day: map['day'] as String? ?? '',
           workout_name: map['workout_name'] as String? ?? '',
           workout_id: map['workout_id'],
-          category: map['category'] as String? ?? '',
-          reps: map['reps'] as int? ?? 0,
-          sets: map['sets'] as int? ?? 0,
-          weight: map['weight'] as double? ?? 0);
+          category: map['category'] as String? ?? '');
     }).toList();
     return _workoutSplits;
   }
@@ -140,7 +157,7 @@ class WorkoutProvider with ChangeNotifier {
         where: 'id = ?',
         whereArgs: [id],
       );
-      
+
       _workoutSplits.removeWhere((split) => split.id == id);
       notifyListeners();
     } catch (e) {
@@ -184,66 +201,35 @@ class WorkoutProvider with ChangeNotifier {
   }
 
   Future<void> fetchWorkoutLogs() async {
-    try {
-      final maps = await DatabaseHelper.instance.fetchWorkoutLogs();
+    final db = await DatabaseHelper.instance.database;
 
-      _workoutLogs = maps.map((map) {
-        return WorkoutLog(
-          id: map['id'] as int?,
-          date: DateTime.parse(map['date'] as String),
-          workoutNames: [
-            map['workout_1'] as String? ?? '',
-            map['workout_2'] as String? ?? '',
-            map['workout_3'] as String? ?? '',
-            map['workout_4'] as String? ?? '',
-            map['workout_5'] as String? ?? '',
-            map['workout_6'] as String? ?? '',
-          ],
-          workoutReps: [
-            map['workout_1_reps'] as int? ?? 0,
-            map['workout_2_reps'] as int? ?? 0,
-            map['workout_3_reps'] as int? ?? 0,
-            map['workout_4_reps'] as int? ?? 0,
-            map['workout_5_reps'] as int? ?? 0,
-            map['workout_6_reps'] as int? ?? 0,
-          ],
-          workoutSets: [
-            map['workout_1_sets'] as int? ?? 0,
-            map['workout_2_sets'] as int? ?? 0,
-            map['workout_3_sets'] as int? ?? 0,
-            map['workout_4_sets'] as int? ?? 0,
-            map['workout_5_sets'] as int? ?? 0,
-            map['workout_6_sets'] as int? ?? 0,
-          ],
-          workoutWeights: [
-            map['workout_1_weights'] as double? ?? 0,
-            map['workout_2_weights'] as double? ?? 0,
-            map['workout_3_weights'] as double? ?? 0,
-            map['workout_4_weights'] as double? ?? 0,
-            map['workout_5_weights'] as double? ?? 0,
-            map['workout_6_weights'] as double? ?? 0,
-          ],
-          status: map['status'] as String,
-        );
-      }).toList();
+    // Join workout_logs with workout_details and workouts to get all necessary information
+    final List<Map<String, dynamic>> results = await db.rawQuery('''
+      SELECT 
+        wl.date,
+        wl.status,
+        w.name as workout_name,
+        wd.weight,
+        wd.sets_data
+      FROM workout_logs wl
+      JOIN workout_details wd ON wl.id = wd.log_id
+      JOIN workouts w ON wd.workout_id = w.id
+      ORDER BY wl.date DESC
+    ''');
 
-      notifyListeners();
-    } catch (e) {
-      rethrow;
-    }
-  }
+    // Group results by date
+    final Map<String, List<Map<String, dynamic>>> groupedLogs = {};
 
-  Map<String, List<WorkoutLog>> get workoutLogsByDate {
-    final Map<String, List<WorkoutLog>> logsByDate = {};
-    for (var log in _workoutLogs) {
-      final String date =
-          '${log.date.year}-${log.date.month.toString().padLeft(2, '0')}-${log.date.day.toString().padLeft(2, '0')}';
-      if (logsByDate[date] == null) {
-        logsByDate[date] = [];
+    for (var result in results) {
+      final date = result['date'] as String;
+      if (!groupedLogs.containsKey(date)) {
+        groupedLogs[date] = [];
       }
-      logsByDate[date]!.add(log);
+      groupedLogs[date]!.add(result);
     }
-    return logsByDate;
+
+    _workoutLogsByDate = groupedLogs;
+    notifyListeners();
   }
 
   Future<void> loadGoals(String getType) async {
