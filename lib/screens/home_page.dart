@@ -46,7 +46,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
-          drawer: const AppDrawer(),
+          drawer: AppDrawer(),
           body: _pages[_currentIndex],
           bottomNavigationBar: BottomNavBar(
             currentIndex: _currentIndex,

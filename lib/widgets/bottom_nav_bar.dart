@@ -14,20 +14,33 @@ class BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      currentIndex: currentIndex,
-      onTap: onTap,
-      type: BottomNavigationBarType.fixed,
-      items: [
-        BottomNavigationBarItem(
-            icon: const Icon(Icons.fitness_center), label: navItems['today']!),
-        BottomNavigationBarItem(
-            icon: const Icon(Icons.calendar_month), label: navItems['history']!),
-        BottomNavigationBarItem(
-            icon: const Icon(Icons.splitscreen_sharp), label: navItems['split']!),
-        BottomNavigationBarItem(
-            icon: const Icon(Icons.bar_chart), label: navItems['stats']!),
-      ],
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: Theme.of(context).dividerColor,
+            width: 1.0,
+          ),
+        ),
+      ),
+      child: BottomNavigationBar(
+        currentIndex: currentIndex,
+        onTap: onTap,
+        type: BottomNavigationBarType.fixed,
+        items: [
+          BottomNavigationBarItem(
+              icon: const Icon(Icons.fitness_center),
+              label: navItems['today']!),
+          BottomNavigationBarItem(
+              icon: const Icon(Icons.calendar_month),
+              label: navItems['history']!),
+          BottomNavigationBarItem(
+              icon: const Icon(Icons.splitscreen_sharp),
+              label: navItems['split']!),
+          BottomNavigationBarItem(
+              icon: const Icon(Icons.bar_chart), label: navItems['stats']!),
+        ],
+      ),
     );
   }
 }

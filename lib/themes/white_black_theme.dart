@@ -4,6 +4,7 @@ class WhiteBlackTheme {
   static ThemeData get lightTheme => ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
+        dividerColor: Color.fromARGB(255, 54, 54, 54),
         scaffoldBackgroundColor: Colors.white,
         colorScheme: const ColorScheme.light(
           background: Colors.white,

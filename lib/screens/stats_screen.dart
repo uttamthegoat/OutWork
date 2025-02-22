@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:outwork/dialogs/add_skill_dialog.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:outwork/providers/workout_provider.dart';
@@ -17,6 +18,7 @@ class _StatsPageState extends State<StatsPage> {
   void initState() {
     super.initState();
     _loadGoals("fetch");
+    _loadSkills("fetch");
     setBestStreak();
     _loadQuickStats();
   }
@@ -24,6 +26,11 @@ class _StatsPageState extends State<StatsPage> {
   Future<void> _loadGoals(String getType) async {
     await Provider.of<WorkoutProvider>(context, listen: false)
         .loadGoals(getType);
+  }
+
+  Future<void> _loadSkills(String getType) async {
+    await Provider.of<WorkoutProvider>(context, listen: false)
+        .loadSkills(getType);
   }
 
   void setBestStreak() async {
@@ -53,9 +60,11 @@ class _StatsPageState extends State<StatsPage> {
               ],
             ),
             const SizedBox(height: 24),
+            _buildQuickStats(context),
+            const SizedBox(height: 24),
             _buildGoals(context),
             const SizedBox(height: 24),
-            _buildQuickStats(context),
+            _buildSkills(context),
           ],
         ),
       ),
@@ -86,16 +95,12 @@ class _StatsPageState extends State<StatsPage> {
                     const SizedBox(width: 8),
                     TextButton(
                       onPressed: () async {
-                        final result = await showDialog<bool>(
+                        await showDialog<bool>(
                           context: context,
                           builder: (BuildContext context) {
                             return const AddGoalDialog();
                           },
                         );
-                        if (result == true) {
-                          _loadGoals(
-                              "fetch"); // Reload goals after adding new one
-                        }
                       },
                       style: TextButton.styleFrom(
                         side: BorderSide(
@@ -120,27 +125,32 @@ class _StatsPageState extends State<StatsPage> {
                 child: Text('No goals added yet'),
               )
             else
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: goals.length,
-                itemBuilder: (context, index) {
-                  final goal = goals[index];
-                  return Card(
-                    child: ListTile(
-                      title: Text(goal.goalName),
-                      subtitle: Text(
-                        'Deadline: ${DateFormat('yyyy-MM-dd').format(goal.deadline)}',
-                      ),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () async {
-                          await provider.deleteGoal(goal.id!);
-                        },
-                      ),
-                    ),
-                  );
-                },
+              Container(
+                height: 400,
+                child: SingleChildScrollView(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: goals.length,
+                    itemBuilder: (context, index) {
+                      final goal = goals[index];
+                      return Card(
+                        child: ListTile(
+                          title: Text(goal.goalName),
+                          subtitle: Text(
+                            'Deadline: ${DateFormat('yyyy-MM-dd').format(goal.deadline)}',
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () async {
+                              await provider.deleteGoal(goal.id!);
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ),
           ],
         );
@@ -208,5 +218,92 @@ class _StatsPageState extends State<StatsPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildSkills(BuildContext context) {
+    return Consumer<WorkoutProvider>(builder: (context, provider, child) {
+      final skills = provider.skills;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Skills',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              Row(
+                children: [
+                  TextButton(
+                    onPressed: () => _loadSkills("refresh"),
+                    child: const Icon(Icons.refresh),
+                  ),
+                  const SizedBox(width: 8),
+                  TextButton(
+                    onPressed: () async {
+                      await showDialog<bool>(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return const SkillDialog();
+                        },
+                      );
+                    },
+                    style: TextButton.styleFrom(
+                      side: BorderSide(
+                        color: Theme.of(context).colorScheme.primary,
+                        width: 1,
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text('Add Skill'),
+                  ),
+                ],
+              )
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (skills.isEmpty)
+            const Center(
+              child: Text('No skills added yet'),
+            )
+          else
+            Container(
+              height: 400,
+              child: ListView.builder(
+                shrinkWrap: true,
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemCount: skills.length,
+                itemBuilder: (context, index) {
+                  final skill = skills[index];
+                  return Card(
+                    child: ListTile(
+                      title: Text(skill.skillName),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.update),
+                        onPressed: () async {
+                          await showDialog<bool>(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return SkillDialog(skill: skill);
+                            },
+                          );
+                        },
+                      ),
+                      subtitle: Text(
+                        'Duration: ${skill.duration} seconds | Status: ${skill.status}',
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+        ],
+      );
+    });
   }
 }

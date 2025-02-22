@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:outwork/database/database_helper.dart';
+import 'package:outwork/models/workout.dart';
 import 'package:outwork/providers/workout_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -67,33 +68,40 @@ class _AddWorkoutSplitDialogState extends State<AddWorkoutSplitDialog> {
             const SizedBox(height: 16),
             Consumer<WorkoutProvider>(
               builder: (context, provider, child) {
+                final sortedWorkouts = List<Workout>.from(provider.workouts)
+                  ..sort((a, b) =>
+                      a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+                print(sortedWorkouts);
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    DropdownButtonFormField<int>(
-                      decoration: const InputDecoration(
-                        labelText: 'Workout',
-                        border: OutlineInputBorder(),
-                      ),
-                      value: _selectedWorkoutId,
-                      items: provider.workouts.isNotEmpty
-                          ? provider.workouts.map((workout) {
-                              return DropdownMenuItem<int>(
-                                value: workout.id,
-                                child: Text(workout.name),
-                              );
-                            }).toList()
-                          : null,
-                      onChanged: (int? newValue) {
-                        setState(() {
-                          _selectedWorkoutId = newValue;
-                        });
-                      },
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Please select a workout';
+                    Autocomplete<Workout>(
+                      optionsBuilder: (TextEditingValue textEditingValue) {
+                        // Return an empty list if the input is empty
+                        if (textEditingValue.text.isEmpty) {
+                          return const Iterable<Workout>.empty();
                         }
-                        return null;
+                        // Filter the workouts based on the input text
+                        return sortedWorkouts.where((workout) => workout.name
+                            .toLowerCase()
+                            .contains(textEditingValue.text.toLowerCase()));
+                      },
+                      displayStringForOption: (Workout workout) => workout.name,
+                      fieldViewBuilder: (context, textEditingController,
+                          focusNode, onFieldSubmitted) {
+                        return TextField(
+                          controller: textEditingController,
+                          focusNode: focusNode,
+                          decoration: const InputDecoration(
+                            labelText: 'Workout',
+                            border: OutlineInputBorder(),
+                          ),
+                        );
+                      },
+                      onSelected: (Workout workout) {
+                        setState(() {
+                          _selectedWorkoutId = workout.id;
+                        });
                       },
                     ),
                     if (provider.workouts.isEmpty)

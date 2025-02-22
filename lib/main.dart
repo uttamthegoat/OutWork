@@ -32,6 +32,11 @@ Future<void> requestPermissions() async {
 
   if (androidVersion >= 30) {
     // Android 11 or higher
+    // Check if permission is already granted
+    if (await Permission.manageExternalStorage.isGranted) {
+      print('Storage permission already granted');
+      return;
+    }
     // Request manage external storage permission
     final status = await Permission.manageExternalStorage.request();
     if (!status.isGranted) {
@@ -41,6 +46,12 @@ Future<void> requestPermissions() async {
     }
   } else {
     // For Android 10 and below
+    // Check if permission is already granted
+    if (await Permission.storage.isGranted) {
+      print('Storage permission already granted');
+      return;
+    }
+    // Request storage permission
     final status = await Permission.storage.request();
     if (!status.isGranted) {
       await openAppSettings();

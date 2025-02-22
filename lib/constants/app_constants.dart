@@ -30,30 +30,28 @@ class AppConstants {
     'Sunday'
   ];
   static const List<String> muscleGroups = [
-      'Chest',
-      'Back',
-      'Legs',
-      'Shoulders',
-      'Arms',
-      'Biceps',
-      'Triceps',
-      'Core',
-      'Abs',
-      'Calves',
-      'Quadriceps',
-      'Hamstrings',
-      'Glutes',
-      'Forearms',
-      'Traps',
-      'Lats',
-      'Cardio',
-      'Full Body'
+    'Chest',
+    'Back',
+    'Legs',
+    'Shoulders',
+    'Arms',
+    'Biceps',
+    'Triceps',
+    'Core',
+    'Abs',
+    'Calves',
+    'Quadriceps',
+    'Hamstrings',
+    'Glutes',
+    'Forearms',
+    'Traps',
+    'Lats',
+    'Cardio',
+    'Full Body'
+        'Jaw'
+        'Neck'
   ];
-  static const List<String> workoutTypes = [
-    'Strength',
-    'Endurance',
-    'Cardio'
-  ];
+  static const List<String> workoutTypes = ['Strength', 'Endurance', 'Cardio'];
   static const Map<String, String> bottomNavBarItems = {
     'today': 'Today',
     'history': 'History',
@@ -74,4 +72,24 @@ class AppConstants {
     StatsPage(),
   ];
 
+  static const List<String> workoutSplit = [
+    'Skipping Rope',
+    'Rows',
+    'Hanging Leg Raises',
+    'Burpees',
+    'Push Ups',
+    'Pull Ups',
+    'Dips',
+    'Squats',
+    'Lunges',
+    'Planks',
+    'Mountain Climbers',
+    'Leg Raises',
+    'Handstand Push Ups',
+    'Box Jumps',
+    'Tuck Jumps',
+    'Pike Push Ups',
+    'Inverted Rows',
+    'Wall Sits',
+  ];
 }

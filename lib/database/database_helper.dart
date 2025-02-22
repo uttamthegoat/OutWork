@@ -1,5 +1,6 @@
 import 'package:outwork/constants/database_constants.dart';
 import 'package:outwork/models/goal.dart';
+import 'package:outwork/models/skill.dart';
 import 'package:outwork/models/workout_log.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
@@ -266,9 +267,52 @@ class DatabaseHelper {
     }
   }
 
+    Future<void> insertSkill(String skillName, String duration, String status) async {
+    final db = await database;
+    await db.insert(
+      'skills',
+      {
+        'skill_name': skillName,
+        'duration': duration,
+        'status': status,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<Skill>> fetchSkills() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('skills');
+
+    // Convert the List<Map<String, dynamic> into a List<Skill>
+    return List.generate(maps.length, (i) {
+      return Skill.fromMap(maps[i]);
+    });
+  }
+
+    Future<void> updateSkill(int id, String skillName, String duration, String status) async {
+      try {
+    final db = await database;
+    await db.update(
+      'skills',
+      {
+        'skill_name': skillName,
+        'duration': duration,
+        'status': status,
+      },
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    } catch (e) {
+      print('Error updating goal: $e');
+      throw Exception('Failed to update goal');
+      }
+  }
+
   Future<void> close() async {
     final db = await instance.database;
     await db.close();
     _database = null;
   }
+
 }

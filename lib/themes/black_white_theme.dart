@@ -4,10 +4,12 @@ class BlackWhiteTheme {
   static ThemeData get darkTheme => ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: Colors.black,
+        dividerColor: const Color.fromARGB(255, 159, 159, 159),
+        scaffoldBackgroundColor:
+            const Color(0xFF1E1E1E), // Dark gray for scaffold
         colorScheme: const ColorScheme.dark(
-          background: Colors.black,
-          surface: Color(0xFF1E1E1E), // Dark gray for cards and surfaces
+          background: Color(0xFF1E1E1E), // Dark gray for background
+          surface: Color(0xFF1E1E1E), // Dark gray for surfaces
           primary: Colors.white,
           onPrimary: Colors.black,
           secondary: Colors.white,
@@ -16,12 +18,12 @@ class BlackWhiteTheme {
           onSurface: Colors.white,
         ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.black,
+          backgroundColor: Color(0xFF1E1E1E), // Dark gray for app bar
           foregroundColor: Colors.white,
           elevation: 0,
         ),
         cardTheme: CardTheme(
-          color: const Color(0xFF1E1E1E),
+          color: const Color(0xFF1E1E1E), // Dark gray for cards
           elevation: 4,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -42,7 +44,7 @@ class BlackWhiteTheme {
           foregroundColor: Colors.black,
         ),
         dialogTheme: DialogTheme(
-          backgroundColor: const Color(0xFF1E1E1E),
+          backgroundColor: const Color(0xFF1E1E1E), // Dark gray for dialogs
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

@@ -72,5 +72,13 @@ class DatabaseConstants {
         deadline TEXT NOT NULL
       )
     ''',
+    'skills': '''
+      CREATE TABLE skills(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        skill_name TEXT NOT NULL,
+        duration TEXT NOT NULL,
+        status TEXT NOT NULL
+      )
+    ''',
   };
 }

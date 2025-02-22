@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:outwork/database/database_helper.dart';
+import 'package:outwork/models/skill.dart';
 import 'package:outwork/models/workout.dart';
 import 'package:outwork/models/workout_log.dart';
 import 'package:outwork/models/workout_split.dart';
@@ -16,6 +17,7 @@ class WorkoutProvider with ChangeNotifier {
   List<WorkoutLog> _workoutLogs = [];
   List<WorkoutSplit> _workoutSplits = [];
   List<Goal> _goals = [];
+  List<Skill> _skills = [];
 
   int _bestStreak = 0;
   int _currentStreak = 0;
@@ -24,6 +26,7 @@ class WorkoutProvider with ChangeNotifier {
   List<WorkoutLog> get workoutLogs => _workoutLogs;
   List<WorkoutSplit> get workoutSplits => _workoutSplits;
   List<Goal> get goals => [..._goals];
+  List<Skill> get skills => [..._skills];
   int get bestStreak => _bestStreak;
   int get currentStreak => _currentStreak;
 
@@ -361,6 +364,42 @@ class WorkoutProvider with ChangeNotifier {
     } catch (e) {
       print('Error calculating streak: $e');
       return 0;
+    }
+  }
+
+  Future<void> loadSkills(String getType) async {
+    try {
+      if (getType == "fetch") {
+        if (_skills.isNotEmpty) {
+          return;
+        }
+      }
+      final skills = await DatabaseHelper.instance.fetchSkills();
+      _skills = skills;
+      notifyListeners();
+    } catch (e) {
+      _skills = [];
+      notifyListeners();
+    }
+  }
+
+  Future<void> addSkill(
+      String skillName, String duration, String status) async {
+    try {
+      final skills = await DatabaseHelper.instance
+          .insertSkill(skillName, duration, status);
+      await loadSkills("refresh");
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> updateSkill(int id, String skillName, String duration, String status) async {
+    try {
+      await DatabaseHelper.instance.updateSkill(id, skillName, duration, status);
+    await loadSkills("refresh");
+    } catch (e) {
+      rethrow;
     }
   }
 }

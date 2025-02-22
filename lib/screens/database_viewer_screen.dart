@@ -20,6 +20,7 @@ class _DatabaseViewerScreenState extends State<DatabaseViewerScreen> {
     'personal_records',
     'workout_split',
     'goals',
+    'skills',
   ];
 
   Future<void> _exportDatabase() async {
