@@ -27,7 +27,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 3, // Increment version number
+      version: 1,
       onCreate: _createTables,
       onUpgrade: _onUpgrade,
       onConfigure: (db) async {
