@@ -64,6 +64,7 @@ class AppConstants {
     'databaseViewer': 'Database Viewer',
     'settings': 'Settings',
     'helpSupport': 'Help & Support',
+    'backupOrRestore': 'Backup or Restore',
   };
   static const List<Widget> pages = [
     TodayPage(),
@@ -91,5 +92,12 @@ class AppConstants {
     'Pike Push Ups',
     'Inverted Rows',
     'Wall Sits',
+  ];
+
+  static const settingsPageContent = [
+    {
+      'icon': '',
+      'title': 'Appearance',
+    },
   ];
 }

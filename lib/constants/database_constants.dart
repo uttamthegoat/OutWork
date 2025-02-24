@@ -4,6 +4,17 @@ class DatabaseConstants {
   static const String exercisesTable = 'exercises';
   static const String setsTable = 'sets';
 
+  static const List<String> dbTables = [
+    'workouts',
+    'workout_muscle_groups',
+    'workout_logs',
+    'workout_details',
+    'personal_records',
+    'workout_split',
+    'goals',
+    'skills',
+  ];
+
   static const Map<String, String> deleteQueries = {
     'workout_muscle_groups': 'DROP TABLE IF EXISTS workout_muscle_groups',
     'personal_records': 'DROP TABLE IF EXISTS personal_records',
@@ -12,6 +23,8 @@ class DatabaseConstants {
     'workout_details': 'DROP TABLE IF EXISTS workout_details',
     'workouts': 'DROP TABLE IF EXISTS workouts',
   };
+
+
 
   static const Map<String, String> createQueries = {
     'workouts': '''

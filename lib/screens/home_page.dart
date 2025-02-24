@@ -27,24 +27,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
-        if (!themeProvider.isInitialized) {
-          return const Center(child: CircularProgressIndicator());
-        }
         return Scaffold(
           appBar: AppBar(
             title: const Text('OutWork'),
-            actions: [
-              IconButton(
-                icon: Icon(
-                  themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
-                ),
-                onPressed: () async {
-                  await themeProvider.toggleTheme();
-                },
-              ),
-            ],
           ),
           drawer: AppDrawer(),
           body: _pages[_currentIndex],
@@ -53,7 +38,5 @@ class _HomePageState extends State<HomePage> {
             onTap: (index) => setState(() => _currentIndex = index),
           ),
         );
-      },
-    );
   }
 }

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:outwork/database/database_helper.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:outwork/database/database_backup_helper.dart';
-import 'dart:io';
+import 'package:outwork/constants/database_constants.dart';
 
 class DatabaseViewerScreen extends StatefulWidget {
   const DatabaseViewerScreen({super.key});
@@ -12,98 +10,8 @@ class DatabaseViewerScreen extends StatefulWidget {
 }
 
 class _DatabaseViewerScreenState extends State<DatabaseViewerScreen> {
-  final List<String> _tables = [
-    'workouts',
-    'workout_muscle_groups',
-    'workout_logs',
-    'workout_details',
-    'personal_records',
-    'workout_split',
-    'goals',
-    'skills',
-  ];
+  final List<String> _tables = DatabaseConstants.dbTables;
 
-  Future<void> _exportDatabase() async {
-    try {
-      final exportPath = await DatabaseBackupHelper.exportDatabase();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Database exported to: $exportPath'),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 5),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error exporting database: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _importDatabase() async {
-    try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.any,
-        allowMultiple: false,
-      );
-
-      if (result != null && result.files.single.path != null) {
-        final filePath = result.files.single.path!;
-        if (!filePath.toLowerCase().endsWith('.db')) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Please select a valid database file (.db)'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-          return;
-        }
-
-        await DatabaseBackupHelper.importDatabase(context, filePath);
-        if (mounted) {
-          await showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text('Import Successful'),
-                content: const Text(
-                  'Database imported successfully. The app will now close. '
-                  'Please restart the app to see the imported data.',
-                ),
-                actions: <Widget>[
-                  TextButton(
-                    child: const Text('OK'),
-                    onPressed: () {
-                      exit(0); // Force close the app
-                    },
-                  ),
-                ],
-              );
-            },
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error importing database: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -112,39 +20,6 @@ class _DatabaseViewerScreenState extends State<DatabaseViewerScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Database Viewer'),
-          actions: [
-            PopupMenuButton<String>(
-              onSelected: (value) async {
-                if (value == 'export') {
-                  await _exportDatabase();
-                } else if (value == 'import') {
-                  await _importDatabase();
-                }
-              },
-              itemBuilder: (BuildContext context) => [
-                const PopupMenuItem<String>(
-                  value: 'export',
-                  child: Row(
-                    children: [
-                      Icon(Icons.upload),
-                      SizedBox(width: 8),
-                      Text('Export Database'),
-                    ],
-                  ),
-                ),
-                const PopupMenuItem<String>(
-                  value: 'import',
-                  child: Row(
-                    children: [
-                      Icon(Icons.download),
-                      SizedBox(width: 8),
-                      Text('Import Database'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
           bottom: TabBar(
             isScrollable: true,
             tabs: _tables.map((table) => Tab(text: table)).toList(),
