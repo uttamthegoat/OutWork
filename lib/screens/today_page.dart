@@ -142,9 +142,9 @@ class _TodayPageState extends State<TodayPage> {
         // Convert sets to JSON array of reps
         List<Map<String, dynamic>> setsData = [];
         for (var rep in workout['sets']) {
-          setsData.add({
-            'reps': rep.toString().isEmpty ? null : rep.toString()
-          });
+          if (rep.toString().isNotEmpty) {
+            setsData.add({'reps': rep.toString()});
+          }
         }
 
         // Create the workout_details entry
@@ -152,8 +152,7 @@ class _TodayPageState extends State<TodayPage> {
           'log_id': logId,
           'workout_id': workout['workout_id'],
           'weight': weight,
-          'sets_data':
-              setsData,
+          'sets_data': setsData,
         };
 
         // Insert the workout details
@@ -484,7 +483,12 @@ class _TodayPageState extends State<TodayPage> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                'Set ${setIndex + 1}: ${reps ?? 'No'} reps',
+                                'Set ${setIndex + 1}: ${reps != null
+                                        ? (RegExp(r'^\d+$')
+                                                .hasMatch(reps.toString())
+                                        ? '$reps reps'
+                                        : reps)
+                                        : 'No reps recorded'}',
                                 style: const TextStyle(
                                   color: Colors.blue,
                                   fontWeight: FontWeight.bold,

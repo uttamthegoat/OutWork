@@ -137,7 +137,10 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                                   ),
                                   child: Text(
                                     reps != null
+                                        ? (RegExp(r'^\d+$')
+                                                .hasMatch(reps.toString())
                                         ? 'Set ${setIndex + 1}: $reps reps'
+                                        : 'Set ${setIndex + 1}: $reps')
                                         : 'Set ${setIndex + 1}: No reps recorded',
                                     style: const TextStyle(
                                       color: Colors.blue,
