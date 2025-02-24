@@ -52,23 +52,22 @@ class _TodayPageState extends State<TodayPage> {
     super.dispose();
   }
 
+  void _createSetForWorkout(int workoutId) {
+    int workoutIndex =
+        workoutList.indexWhere((set) => set['workout_id'] == workoutId);
+    if (workoutIndex == -1) {
+      setState(() {
+        workoutList.add({'workout_id': workoutId, 'weight': '', 'sets': []});
+      });
+    }
+  }
+
   void _addSet(int workoutId) {
     setState(() {
       int workoutIndex =
           workoutList.indexWhere((set) => set['workout_id'] == workoutId);
 
-      if (workoutIndex == -1) {
-        // Workout doesn't exist, create new entry
-        workoutList.add({
-          'workout_id': workoutId,
-          'weight': '',
-          'sets': [''] // Initialize with one empty rep
-        });
-      } else {
-        // Workout exists, add new rep to sets
-        (workoutList[workoutIndex]['sets'] as List)
-            .add(''); // Add an empty string for the new set
-      }
+      (workoutList[workoutIndex]['sets'] as List).add('');
     });
   }
 
@@ -144,7 +143,7 @@ class _TodayPageState extends State<TodayPage> {
         List<Map<String, dynamic>> setsData = [];
         for (var rep in workout['sets']) {
           setsData.add({
-            'reps': rep.toString().isEmpty ? null : int.parse(rep.toString())
+            'reps': rep.toString().isEmpty ? null : rep.toString()
           });
         }
 
@@ -154,7 +153,7 @@ class _TodayPageState extends State<TodayPage> {
           'workout_id': workout['workout_id'],
           'weight': weight,
           'sets_data':
-              setsData, // This will be converted to JSON string in the provider
+              setsData,
         };
 
         // Insert the workout details
@@ -233,6 +232,11 @@ class _TodayPageState extends State<TodayPage> {
                     final workout = todayWorkouts[index];
 
                     return ExpansionTile(
+                      onExpansionChanged: (expanded) {
+                        if (expanded) {
+                          _createSetForWorkout(workout.workout_id);
+                        }
+                      },
                       leading: const Icon(Icons.fitness_center),
                       title: Text(workout.workout_name),
                       children: [
@@ -246,9 +250,15 @@ class _TodayPageState extends State<TodayPage> {
                                 orElse: () => {
                                   'workout_id': workout.workout_id,
                                   'weight': '',
-                                  'sets': ['']
+                                  'sets': []
                                 },
                               );
+
+                              // Ensure sets are initialized properly
+                              if (workoutEntry['sets'].isEmpty) {
+                                workoutEntry['sets'] =
+                                    []; // Initialize with one empty rep if empty
+                              }
 
                               List<Widget> widgets = [
                                 // Weight Row
@@ -283,7 +293,7 @@ class _TodayPageState extends State<TodayPage> {
                                                   'workout_id':
                                                       workout.workout_id,
                                                   'weight': value,
-                                                  'sets': ['']
+                                                  'sets': []
                                                 });
                                               } else {
                                                 // Update existing entry
@@ -323,7 +333,7 @@ class _TodayPageState extends State<TodayPage> {
                                               labelText: 'Reps',
                                               border: OutlineInputBorder(),
                                             ),
-                                            keyboardType: TextInputType.number,
+                                            keyboardType: TextInputType.text,
                                             onChanged: (value) {
                                               setState(() {
                                                 sets[i] =
@@ -463,7 +473,7 @@ class _TodayPageState extends State<TodayPage> {
                           children: List.generate(setsData.length, (setIndex) {
                             final setData =
                                 setsData[setIndex] as Map<String, dynamic>;
-                            final reps = setData['reps'] as int?;
+                            final reps = setData['reps'] as String?;
                             return Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 8,

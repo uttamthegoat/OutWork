@@ -118,7 +118,7 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                         ...List.generate(setsData.length, (setIndex) {
                           final setData =
                               setsData[setIndex] as Map<String, dynamic>;
-                          final reps = setData['reps'] as int?;
+                          final reps = setData['reps'] as String?;
                           return Padding(
                             padding: const EdgeInsets.symmetric(
                               vertical: 4,
