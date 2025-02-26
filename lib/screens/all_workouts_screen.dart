@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:outwork/dialogs/add_workout_dialog.dart';
+import 'package:outwork/widgets/toast.dart';
 import 'package:outwork/widgets/workout_dialogs.dart';
 import 'package:provider/provider.dart';
 import 'package:outwork/providers/workout_provider.dart';
@@ -61,22 +62,11 @@ class _AllWorkoutsScreenState extends State<AllWorkoutsScreen> {
       if (context.mounted) {
         await Provider.of<WorkoutProvider>(context, listen: false)
             .loadWorkouts();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('All workouts deleted successfully'),
-            duration: Duration(seconds: 2),
-          ),
-        );
+        showCustomToast('All workouts deleted successfully', 'success');
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error deleting workouts: ${e.toString()}'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-            duration: const Duration(seconds: 3),
-          ),
-        );
+        showCustomToast('Error deleting workouts: ${e.toString()}', 'error');
       }
     }
   }

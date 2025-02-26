@@ -4,7 +4,6 @@ import 'package:outwork/providers/workout_provider.dart';
 import 'package:outwork/widgets/bottom_nav_bar.dart';
 import 'package:outwork/widgets/app_drawer.dart';
 import 'package:outwork/constants/app_constants.dart';
-import 'package:outwork/providers/theme_provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

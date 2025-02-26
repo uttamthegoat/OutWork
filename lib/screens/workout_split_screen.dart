@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:outwork/constants/app_constants.dart';
 import 'package:outwork/dialogs/add_split_dialog.dart';
+import 'package:outwork/widgets/toast.dart';
 import 'package:provider/provider.dart';
 import 'package:outwork/providers/workout_provider.dart';
 import 'package:outwork/models/workout_split.dart';
@@ -215,11 +216,7 @@ class _WorkoutSplitScreenState extends State<WorkoutSplitScreen> {
                           },
                           onDismissed: (direction) async {
                             await provider.deleteWorkoutSplit(split.id!);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: const Text('Workout deleted')
-                              ),
-                            );
+                            showCustomToast('Workout deleted', 'success');
                           },
                           child: ListTile(
                             title: Text(split.workout_name),

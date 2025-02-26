@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:outwork/dialogs/add_pr_dialog.dart';
+import 'package:outwork/widgets/toast.dart';
 import 'package:outwork/widgets/workout_dialogs.dart';
 import 'package:provider/provider.dart';
 import 'package:outwork/providers/workout_provider.dart';
@@ -148,21 +149,10 @@ class PersonalRecordsScreen extends StatelessWidget {
       // await Provider.of<WorkoutProvider>(context, listen: false).deleteAllPRs();
 
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('All personal records deleted successfully'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      showCustomToast('All personal records deleted successfully', 'success');
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error deleting personal records: ${e.toString()}'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      showCustomToast('Error deleting personal records: ${e.toString()}', 'error');
     }
   }
 }

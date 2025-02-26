@@ -3,6 +3,7 @@ import 'package:outwork/database/database_helper.dart';
 import 'package:outwork/models/personal_record.dart';
 import 'package:outwork/models/workout.dart';
 import 'package:outwork/providers/workout_provider.dart';
+import 'package:outwork/widgets/toast.dart';
 import 'package:provider/provider.dart';
 
 class AddPRDialog extends StatefulWidget {
@@ -55,21 +56,10 @@ class _AddPRDialogState extends State<AddPRDialog> {
       if (!mounted) return;
       Provider.of<WorkoutProvider>(context, listen: false).notifyListeners();
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Personal Record added successfully'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      showCustomToast('Personal Record added successfully', 'success');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error adding PR: ${e.toString()}'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      showCustomToast('Error adding PR: ${e.toString()}', 'error');
     }
   }
 
@@ -186,12 +176,20 @@ class _AddPRDialogState extends State<AddPRDialog> {
             children: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancel'),
+                child:
+                    const Text('Cancel', style: TextStyle(color: Colors.red)),
+                style: TextButton.styleFrom(
+                  side: const BorderSide(color: Colors.red),
+                ),
               ),
               const SizedBox(width: 16),
-              ElevatedButton(
+              TextButton(
                 onPressed: _submitForm,
-                child: const Text('Add PR'),
+                style: TextButton.styleFrom(
+                  side: const BorderSide(color: Colors.blue),
+                ),
+                child:
+                    const Text('Add PR', style: TextStyle(color: Colors.blue)),
               ),
             ],
           ),

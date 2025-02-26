@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:outwork/database/database_helper.dart';
 import 'package:outwork/models/workout.dart';
 import 'package:outwork/providers/workout_provider.dart';
+import 'package:outwork/widgets/toast.dart';
 import 'package:provider/provider.dart';
 
 class AddWorkoutSplitDialog extends StatefulWidget {
@@ -33,24 +34,13 @@ class _AddWorkoutSplitDialogState extends State<AddWorkoutSplitDialog> {
         await DatabaseHelper.instance.insertWorkoutSplit(workoutSplit);
 
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Workout added successfully'),
-            duration: Duration(seconds: 2),
-          ),
-        );
+        showCustomToast('Workout added successfully', 'success');
 
         // Optionally, notify listeners if you want to update the UI
         Provider.of<WorkoutProvider>(context, listen: false)
             .fetchWorkoutSplitsForDay(widget.currentDay);
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error adding workout: ${e.toString()}'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-            duration: const Duration(seconds: 3),
-          ),
-        );
+        showCustomToast('Error adding workout: ${e.toString()}', 'error');
       }
     }
   }
@@ -64,7 +54,7 @@ class _AddWorkoutSplitDialogState extends State<AddWorkoutSplitDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Day: ${widget.currentDay}'),
+            Text('Day: ${widget.currentDay}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             Consumer<WorkoutProvider>(
               builder: (context, provider, child) {
@@ -123,11 +113,17 @@ class _AddWorkoutSplitDialogState extends State<AddWorkoutSplitDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          style: TextButton.styleFrom(
+            side: const BorderSide(color: Colors.red),
+          ),
+          child: const Text('Cancel', style: TextStyle(color: Colors.red)),
         ),
-        ElevatedButton(
+        TextButton(
           onPressed: () => _submitForm(context),
-          child: const Text('Add'),
+          style: TextButton.styleFrom(
+            side: const BorderSide(color: Colors.blue),
+          ),
+          child: const Text('Add', style: TextStyle(color: Colors.blue)),
         ),
       ],
     );

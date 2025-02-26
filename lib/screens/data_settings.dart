@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:outwork/database/database_backup_helper.dart';
+import 'package:outwork/widgets/toast.dart';
 
 class DataSettings extends StatefulWidget {
   const DataSettings({super.key});
@@ -16,22 +17,11 @@ class _DataSettingsState extends State<DataSettings> {
     try {
       final exportPath = await DatabaseBackupHelper.exportDatabase();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Database exported to: $exportPath'),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 5),
-          ),
-        );
+        showCustomToast('Database exported to: $exportPath', 'success');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error exporting database: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showCustomToast('Error exporting database: $e', 'error');
       }
     }
   }
@@ -47,12 +37,7 @@ class _DataSettingsState extends State<DataSettings> {
         final filePath = result.files.single.path!;
         if (!filePath.toLowerCase().endsWith('.db')) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Please select a valid database file (.db)'),
-                backgroundColor: Colors.red,
-              ),
-            );
+            showCustomToast('Please select a valid database file (.db)', 'error');
           }
           return;
         }
@@ -84,12 +69,7 @@ class _DataSettingsState extends State<DataSettings> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error importing database: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showCustomToast('Error importing database: $e', 'error');
       }
     }
   }

@@ -41,6 +41,8 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Text('Add Goal', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _goalNameController,
                 decoration: const InputDecoration(
@@ -74,7 +76,10 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel'),
+                    style: TextButton.styleFrom(
+                      side: const BorderSide(color: Colors.red),
+                    ),
+                    child: const Text('Cancel',  style: TextStyle(color: Colors.red)),
                   ),
                   const SizedBox(width: 8),
                   TextButton(
@@ -96,7 +101,11 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
                         }
                       }
                     },
-                    child: const Text('Save'),
+                    style: TextButton.styleFrom(
+                      side: const BorderSide(color: Colors.blue),
+                    ),
+                    child: const Text('Save',style: TextStyle(color: Colors.blue)),
+                    
                   ),
                 ],
               ),

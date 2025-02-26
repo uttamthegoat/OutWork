@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:outwork/constants/app_constants.dart';
+import 'package:outwork/widgets/toast.dart';
 import 'package:provider/provider.dart';
 import 'package:outwork/providers/workout_provider.dart';
 import 'package:outwork/models/workout_split.dart';
@@ -105,10 +106,7 @@ class _TodayPageState extends State<TodayPage> {
     try {
       // Check if workoutList is empty
       if (workoutList.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('No workouts to save. Please add workouts first.')),
-        );
+        showCustomToast('No workouts to save. Please add workouts first.', 'error');
         return; // Exit the function early
       }
 
@@ -165,14 +163,9 @@ class _TodayPageState extends State<TodayPage> {
         _workoutFinished = true;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Workout session completed')),
-      );
+      showCustomToast('Workout session completed', 'success');
     } catch (e) {
-      print('Error in _saveWorkout: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving workout: $e')),
-      );
+      showCustomToast('Error saving workout: $e', 'error');
     } finally {
       setState(() {
         _isLoading = false;

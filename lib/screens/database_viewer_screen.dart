@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:outwork/database/database_helper.dart';
 import 'package:outwork/constants/database_constants.dart';
+import 'package:outwork/widgets/toast.dart';
 
 class DatabaseViewerScreen extends StatefulWidget {
   const DatabaseViewerScreen({super.key});
@@ -76,21 +77,11 @@ class _TableViewer extends StatelessWidget {
 
         // Show success message
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('All records from $tableName deleted successfully'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          showCustomToast('All records from $tableName deleted successfully', 'success');
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error deleting records: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          showCustomToast('Error deleting records: $e', 'error');
         }
       }
     }

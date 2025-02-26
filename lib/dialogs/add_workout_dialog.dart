@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:outwork/constants/app_constants.dart';
 import 'package:outwork/models/workout.dart';
 import 'package:outwork/providers/workout_provider.dart';
+import 'package:outwork/widgets/toast.dart';
 import 'package:provider/provider.dart';
 
 class AddWorkoutDialog extends StatefulWidget {
@@ -36,22 +37,11 @@ class _AddWorkoutDialogState extends State<AddWorkoutDialog> {
       if (!mounted) return;
 
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Workout added successfully'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      showCustomToast('Workout added successfully', 'success');
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error adding workout: ${e.toString()}'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      showCustomToast('Error adding workout: ${e.toString()}', 'error');
     }
   }
 
@@ -185,12 +175,18 @@ class _AddWorkoutDialogState extends State<AddWorkoutDialog> {
             children: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancel'),
+                child: const Text('Cancel', style: TextStyle(color: Colors.red)),
+                style: TextButton.styleFrom(
+                  side: const BorderSide(color: Colors.red),
+                ),
               ),
               const SizedBox(width: 16),
-              ElevatedButton(
+              TextButton(
                 onPressed: _submitForm,
-                child: const Text('Add'),
+                child: const Text('Add', style: TextStyle(color: Colors.blue)),
+                style: TextButton.styleFrom(
+                  side: const BorderSide(color: Colors.blue),
+                ),
               ),
             ],
           ),

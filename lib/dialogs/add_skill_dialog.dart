@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:outwork/models/skill.dart';
 import 'package:outwork/providers/workout_provider.dart';
+import 'package:outwork/widgets/toast.dart';
 import 'package:provider/provider.dart';
 
 class SkillDialog extends StatefulWidget {
@@ -16,6 +17,7 @@ class _SkillDialogState extends State<SkillDialog> {
   final TextEditingController _skillNameController = TextEditingController();
   final TextEditingController _durationController = TextEditingController();
   late String _selectedStatus;
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -36,70 +38,113 @@ class _SkillDialogState extends State<SkillDialog> {
 
     return AlertDialog(
       title: Text(isUpdating ? 'Update Skill' : 'Add Skill'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _skillNameController,
-            decoration: const InputDecoration(labelText: 'Skill Name'),
-          ),
-          TextField(
-            controller: _durationController,
-            decoration: const InputDecoration(labelText: 'Duration'),
-          ),
-          DropdownButtonFormField<String>(
-            value: _selectedStatus,
-            decoration: const InputDecoration(labelText: 'Status'),
-            items: const [
-              DropdownMenuItem(
-                value: 'Not Started',
-                child: Text('Not Started'),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: _skillNameController,
+              decoration: const InputDecoration(
+                labelText: 'Skill Name',
+                border: OutlineInputBorder(),
               ),
-              DropdownMenuItem(
-                value: 'Learning',
-                child: Text('Learning'),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter a skill name';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 10),
+            TextFormField(
+              controller: _durationController,
+              decoration: const InputDecoration(
+                labelText: 'Duration',
+                border: OutlineInputBorder(),
               ),
-              DropdownMenuItem(
-                value: 'Achieved',
-                child: Text('Achieved'),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter the skill duration';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 10),
+            DropdownButtonFormField<String>(
+              value: _selectedStatus,
+              decoration: const InputDecoration(
+                labelText: 'Status',
+                border: OutlineInputBorder(),
               ),
-            ],
-            onChanged: (String? newValue) {
-              setState(() {
-                _selectedStatus = newValue!;
-              });
-            },
-          ),
-        ],
+              items: const [
+                DropdownMenuItem(
+                  value: 'Not Started',
+                  child: Text('Not Started'),
+                ),
+                DropdownMenuItem(
+                  value: 'Learning',
+                  child: Text('Learning'),
+                ),
+                DropdownMenuItem(
+                  value: 'Achieved',
+                  child: Text('Achieved'),
+                ),
+              ],
+              onChanged: (String? newValue) {
+                setState(() {
+                  _selectedStatus = newValue!;
+                });
+              },
+              validator: (value) {
+                if (value == null) {
+                  return 'Please select a status';
+                }
+                return null;
+              },
+            ),
+          ],
+        ),
       ),
       actions: [
         TextButton(
           onPressed: () {
             Navigator.of(context).pop();
           },
-          child: const Text('Cancel'),
+          style: TextButton.styleFrom(
+            side: const BorderSide(color: Colors.red),
+          ),
+          child: const Text('Cancel', style: TextStyle(color: Colors.red)),
         ),
         TextButton(
+          style: TextButton.styleFrom(
+            side: const BorderSide(color: Colors.blue),
+          ),
           onPressed: () {
-            if (isUpdating) {
-              updateSkill(
-                context,
-                widget.skill!.id,
-                _skillNameController.text,
-                _durationController.text,
-                _selectedStatus,
-              );
-            } else {
-              addSkill(
-                context,
-                _skillNameController.text,
-                _durationController.text,
-                _selectedStatus,
-              );
+            if (_formKey.currentState!.validate()) {
+              if (isUpdating) {
+                updateSkill(
+                  context,
+                  widget.skill!.id,
+                  _skillNameController.text,
+                  _durationController.text,
+                  _selectedStatus,
+                );
+              } else {
+                addSkill(
+                  context,
+                  _skillNameController.text,
+                  _durationController.text,
+                  _selectedStatus,
+                );
+              }
+              Navigator.of(context).pop();
             }
-            Navigator.of(context).pop();
           },
-          child: Text(isUpdating ? 'Update' : 'Add'),
+          child: Text(
+            isUpdating ? 'Update' : 'Add',
+            style: const TextStyle(color: Colors.blue),
+          ),
         ),
       ],
     );
@@ -110,14 +155,9 @@ class _SkillDialogState extends State<SkillDialog> {
     try {
       Provider.of<WorkoutProvider>(context, listen: false)
           .addSkill(skillName, duration, status);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Skill has been added.'),
-          duration: Duration(seconds: 1),
-        ),
-      );
+      showCustomToast('Skill has been added.', 'success');
     } catch (e) {
-      throw Exception('Failed to add skill');
+      showCustomToast('Error adding skill: ${e.toString()}', 'error');
     }
   }
 
@@ -126,14 +166,9 @@ class _SkillDialogState extends State<SkillDialog> {
     try {
       Provider.of<WorkoutProvider>(context, listen: false)
           .updateSkill(id, skillName, duration, status);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Skill has been updated.'),
-          duration: Duration(seconds: 1),
-        ),
-      );
+      showCustomToast('Skill has been updated.', 'success');
     } catch (e) {
-      throw Exception('Failed to update skill');
+      showCustomToast('Error updating skill: ${e.toString()}', 'error');
     }
   }
 
